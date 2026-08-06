@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora de Combos</title>
+<meta name="description" content="Pega la lista de WhatsApp, verifica cantidades, pon costos en CUP y precios de venta en USD. Calcula ganancia al instante.">
+<meta name="theme-color" content="#0f5132">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <div class="brand">
+      <span class="brand-mark">$</span>
+      <div>
+        <h1>Calculadora de Combos</h1>
+        <p class="brand-sub" id="comboName" contenteditable="true" spellcheck="false" data-placeholder="Nombre del combo…"></p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" id="btnImport">Pegar lista</button>
+      <button class="btn btn-ghost" id="btnMenu" aria-label="Más opciones">⋯</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Panel de tasa -->
+  <section class="panel rate-panel">
+    <div class="field">
+      <label for="rate">Precio del USD <span class="hint">(CUP por 1 USD)</span></label>
+      <div class="input-money">
+        <span class="prefix">CUP</span>
+        <input type="text" inputmode="decimal" id="rate" value="440" autocomplete="off">
+      </div>
+    </div>
+    <div class="field">
+      <label for="combos">Combos a armar</label>
+      <div class="stepper">
+        <button type="button" class="step" data-step="-1" aria-label="Menos">−</button>
+        <input type="text" inputmode="numeric" id="combos" value="1" autocomplete="off">
+        <button type="button" class="step" data-step="1" aria-label="Más">+</button>
+      </div>
+    </div>
+    <div class="field field-check">
+      <label class="switch">
+        <input type="checkbox" id="onlyPending">
+        <span>Ver solo pendientes</span>
+      </label>
+      <p class="verify-status" id="verifyStatus">Sin productos</p>
+    </div>
+  </section>
+
+  <!-- Tabla -->
+  <section class="panel table-panel">
+    <div class="table-head">
+      <h2>Productos</h2>
+      <div class="table-head-actions">
+        <button class="btn btn-sm" id="btnAdd">+ Producto</button>
+        <button class="btn btn-sm btn-quiet" id="btnClear">Vaciar</button>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th class="c-check" title="Verificado">✓</th>
+            <th class="c-name">Producto</th>
+            <th class="c-num">Cant.</th>
+            <th class="c-unit">Unidad</th>
+            <th class="c-num">Costo CUP <small>c/u</small></th>
+            <th class="c-num">Costo USD <small>línea</small></th>
+            <th class="c-num">Venta USD <small>c/u</small></th>
+            <th class="c-num">Venta USD <small>línea</small></th>
+            <th class="c-num">Ganancia</th>
+            <th class="c-del"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="empty" id="empty">
+      <p class="empty-title">Todavía no hay productos</p>
+      <p>Pega la lista que te reenviaron por WhatsApp y la app la separa sola en cantidad, unidad y producto.</p>
+      <button class="btn btn-primary" id="btnImport2">Pegar lista de WhatsApp</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Resumen fijo abajo -->
+<footer class="summary" id="summary">
+  <div class="wrap summary-in">
+    <button class="summary-toggle" id="summaryToggle" aria-expanded="false">
+      <span class="sum-block">
+        <span class="sum-label">Ganancia</span>
+        <strong class="sum-value" id="sProfit">$0.00</strong>
+      </span>
+      <span class="sum-block">
+        <span class="sum-label">Margen</span>
+        <strong class="sum-value" id="sMargin">—</strong>
+      </span>
+      <span class="chev" aria-hidden="true">▲</span>
+    </button>
+    <div class="summary-detail" id="summaryDetail" hidden>
+      <dl>
+        <div><dt>Costo total</dt><dd id="sCostCup">0 CUP</dd></div>
+        <div><dt>Costo en USD</dt><dd id="sCostUsd">$0.00</dd></div>
+        <div><dt>Venta total</dt><dd id="sSaleUsd">$0.00</dd></div>
+        <div><dt>Ganancia en CUP</dt><dd id="sProfitCup">0 CUP</dd></div>
+      </dl>
+      <div class="per-combo" id="perCombo" hidden>
+        <h3>Por cada combo <span id="pcCount"></span></h3>
+        <dl>
+          <div><dt>Costo</dt><dd id="pcCost">$0.00</dd></div>
+          <div><dt>Venta</dt><dd id="pcSale">$0.00</dd></div>
+          <div><dt>Ganancia</dt><dd id="pcProfit">$0.00</dd></div>
+        </dl>
+      </div>
+      <div class="summary-actions">
+        <button class="btn btn-sm" id="btnCopy">Copiar resumen</button>
+        <button class="btn btn-sm" id="btnCsv">Descargar CSV</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Modal importar -->
+<dialog id="dlgImport">
+  <form method="dialog" class="dlg-form">
+    <header class="dlg-head">
+      <h2>Pegar lista</h2>
+      <button class="btn btn-ghost" value="cancel" aria-label="Cerrar">✕</button>
+    </header>
+
+    <div class="dlg-body" id="importStep1">
+      <p class="dlg-hint">Pega el mensaje tal cual llegó. Una línea por producto.</p>
+      <textarea id="rawList" rows="10" placeholder="10 lbs d arroz&#10;3 lbs d f negro&#10;1 pomo d aceite&#10;15 huevos&#10;…"></textarea>
+      <div class="dlg-actions">
+        <button type="button" class="btn btn-quiet" id="btnPasteClip">Pegar del portapapeles</button>
+        <button type="button" class="btn btn-primary" id="btnParse">Analizar lista</button>
+      </div>
+    </div>
+
+    <div class="dlg-body" id="importStep2" hidden>
+      <p class="dlg-hint">Revisa cómo quedó dividido. Desmarca lo que no sea un producto y corrige lo que haga falta.</p>
+      <div class="preview" id="preview"></div>
+      <div class="dlg-actions">
+        <button type="button" class="btn btn-quiet" id="btnBack">← Volver</button>
+        <button type="button" class="btn btn-primary" id="btnConfirm">Agregar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Menú -->
+<dialog id="dlgMenu">
+  <form method="dialog" class="dlg-form dlg-menu">
+    <header class="dlg-head">
+      <h2>Opciones</h2>
+      <button class="btn btn-ghost" value="cancel" aria-label="Cerrar">✕</button>
+    </header>
+    <div class="dlg-body">
+      <button type="button" class="menu-item" id="mCopy"><b>Copiar resumen</b><span>Texto listo para WhatsApp</span></button>
+      <button type="button" class="menu-item" id="mCsv"><b>Descargar CSV</b><span>Abre en Excel</span></button>
+      <button type="button" class="menu-item" id="mPrint"><b>Imprimir / PDF</b><span>Guardar el combo</span></button>
+      <button type="button" class="menu-item danger" id="mClear"><b>Vaciar todo</b><span>Borra productos y nombre</span></button>
+      <p class="menu-foot">Los datos se guardan solos en este dispositivo.</p>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
