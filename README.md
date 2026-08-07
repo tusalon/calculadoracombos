@@ -1,15 +1,37 @@
 # Calculadora de Combos
 
-PWA para armar combos de alimentos: pega la lista que te reenvían por WhatsApp, la app la separa en cantidad + unidad + producto, tú verificas, pones el costo en CUP y el precio de venta en USD, y ves la ganancia al instante.
+PWA con tres secciones: **Combo** (armar y calcular), **Historial** (combos guardados) y **Remesas** (control de dinero por Zelle).
 
-## Cómo funciona
+## Combo
 
 1. **Declara la tasa** — cuántos CUP vale 1 USD.
-2. **Pegar lista** — pega el mensaje tal cual llegó. La app lo analiza y te muestra una vista previa editable antes de agregar nada.
+2. **Pegar lista** — pega el mensaje de WhatsApp tal cual llegó. La app lo analiza y te muestra una vista previa editable antes de agregar nada.
 3. **Verifica** — corrige cantidades, marca ✓ cada producto revisado. El contador te dice cuántos faltan y cuáles no tienen precio.
-4. **Costo en CUP** por unidad → la app lo convierte a USD con tu tasa.
+4. **Costo por unidad** — el botoncito `CUP`/`USD` de cada fila dice en qué moneda compraste ese producto. Lo que compras en dólares no pasa por la tasa; lo que compras en pesos se convierte con ella.
 5. **Venta en USD** por unidad → la app multiplica por la cantidad.
-6. **Ganancia** = venta total en USD − costo total convertido a USD.
+6. **Ganancia** = venta total en USD − costo total en USD.
+
+## Historial
+
+Ponle nombre al combo y pulsa **Guardar combo**. Queda archivado con fecha, hora, la tasa que usaste, los productos y la ganancia que dio. Desde el historial puedes **abrirlo** de nuevo (vuelve a la mesa de trabajo), **duplicarlo**, sacar su **CSV** o **borrarlo**.
+
+Si abres un combo guardado y vuelves a pulsar Guardar, se **actualiza** ese mismo — no se duplica. Para partir de una copia, usa *Duplicar*.
+
+## Remesas
+
+Registra el recorrido completo del dinero:
+
+```
+Zelle recibido  →  efectivo USD en mano  →  entregado (USD o CUP)
+     $100                   $95                    $90
+```
+
+- Si no anotas el efectivo, se asume igual al Zelle.
+- Al entregar en CUP puedes fijar una **tasa propia de esa remesa** (distinta de la global).
+- **Ganancia = efectivo en mano − entregado.** La diferencia entre el Zelle y el efectivo se muestra aparte, como el costo de sacar el dinero.
+- Cada remesa lleva cliente, destinatario, teléfono, nota y estado **pendiente/pagada**.
+
+Arriba tienes las estadísticas: ganancia total, ganancia del mes, cuánto te falta por entregar y volumen movido, más un desglose mes a mes. La pestaña muestra un contador naranja con las remesas pendientes.
 
 ## Lo que entiende el analizador
 
@@ -34,7 +56,7 @@ Si un producto ya está en la tabla, al importarlo otra vez **suma la cantidad**
 
 - **Combos a armar** — si compraste para varios combos iguales, pon el número y verás costo, venta y ganancia por combo.
 - **Ver solo pendientes** — esconde lo ya verificado.
-- **Copiar resumen** — texto listo para mandar por WhatsApp.
+- **Copiar resumen** — texto listo para mandar por WhatsApp (hay uno para el combo y otro para las remesas).
 - **CSV** — se abre en Excel (separador `;`, decimales con coma).
 - Todo se guarda solo en el dispositivo (`localStorage`). No hay servidor ni cuentas.
 - Funciona sin internet una vez abierta.
@@ -53,15 +75,23 @@ npx http-server -p 5188 -c-1 .
 
 ## Desarrollo
 
-Sin dependencias ni build: HTML, CSS y un `app.js` en JavaScript plano.
+Sin dependencias ni build: HTML, CSS y módulos ES nativos.
 
-- `index.html` — estructura y diálogos
+- `index.html` — estructura, pestañas y diálogos
 - `styles.css` — tema claro/oscuro, tabla en escritorio y tarjetas en móvil
-- `app.js` — analizador, cálculos, render y guardado
+- `js/core.js` — estado, formato de números, fechas, guardado y migración
+- `js/parser.js` — analizador de listas de WhatsApp
+- `js/combo.js` — tabla, cálculos, importar y exportar
+- `js/historial.js` — combos guardados
+- `js/remesas.js` — remesas y estadísticas
+- `js/app.js` — navegación y arranque
 - `sw.js` — caché offline. **Sube `CACHE = 'combos-vN'` en cada cambio** para que los teléfonos ya instalados reciban la actualización.
 
-Para probar el analizador desde la consola del navegador:
+Los datos viven en `localStorage` bajo `calccombos.v2`. Al arrancar, si solo existe `calccombos.v1` (la versión de un solo combo suelto), se migra sola y el costo de cada producto se marca como CUP.
+
+Para probar desde la consola del navegador:
 
 ```js
 __calc.parseList('10 lbs d arroz\n2 laticas d tomate')
+__calc.calcRemesa({zelle:100, efectivo:95, entregado:90, entregadoCur:'USD', tasa:0})
 ```

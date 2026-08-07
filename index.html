@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calculadora de Combos</title>
-<meta name="description" content="Pega la lista de WhatsApp, verifica cantidades, pon costos en CUP y precios de venta en USD. Calcula ganancia al instante.">
+<meta name="description" content="Arma combos desde la lista de WhatsApp, guarda el historial y lleva el control de tus remesas.">
 <meta name="theme-color" content="#0f5132">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
@@ -19,86 +19,174 @@
   <div class="wrap topbar-in">
     <div class="brand">
       <span class="brand-mark">$</span>
-      <div>
-        <h1>Calculadora de Combos</h1>
-        <p class="brand-sub" id="comboName" contenteditable="true" spellcheck="false" data-placeholder="Nombre del combo…"></p>
-      </div>
+      <h1>Calculadora de Combos</h1>
     </div>
     <div class="topbar-actions">
       <button class="btn btn-primary" id="btnImport">Pegar lista</button>
       <button class="btn btn-ghost" id="btnMenu" aria-label="Más opciones">⋯</button>
     </div>
   </div>
+  <nav class="tabs wrap" role="tablist">
+    <button class="tab on" data-tab="combo" role="tab" aria-selected="true">Combo</button>
+    <button class="tab" data-tab="historial" role="tab" aria-selected="false">Historial <span class="badge-n" id="tabHistBadge" hidden></span></button>
+    <button class="tab" data-tab="remesas" role="tab" aria-selected="false">Remesas <span class="badge-n warn" id="tabRemBadge" hidden></span></button>
+  </nav>
 </header>
 
 <main class="wrap">
 
-  <!-- Panel de tasa -->
-  <section class="panel rate-panel">
-    <div class="field">
-      <label for="rate">Precio del USD <span class="hint">(CUP por 1 USD)</span></label>
-      <div class="input-money">
-        <span class="prefix">CUP</span>
-        <input type="text" inputmode="decimal" id="rate" value="440" autocomplete="off">
+  <!-- ============ COMBO ============ -->
+  <section class="view" data-view="combo">
+
+    <section class="panel rate-panel">
+      <div class="field">
+        <label for="rate">Precio del USD <span class="hint">(CUP por 1 USD)</span></label>
+        <div class="input-money">
+          <span class="prefix">CUP</span>
+          <input type="text" inputmode="decimal" id="rate" value="440" autocomplete="off">
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label for="combos">Combos a armar</label>
-      <div class="stepper">
-        <button type="button" class="step" data-step="-1" aria-label="Menos">−</button>
-        <input type="text" inputmode="numeric" id="combos" value="1" autocomplete="off">
-        <button type="button" class="step" data-step="1" aria-label="Más">+</button>
+      <div class="field">
+        <label for="combos">Combos a armar</label>
+        <div class="stepper">
+          <button type="button" class="step" data-step="-1" aria-label="Menos">−</button>
+          <input type="text" inputmode="numeric" id="combos" value="1" autocomplete="off">
+          <button type="button" class="step" data-step="1" aria-label="Más">+</button>
+        </div>
       </div>
-    </div>
-    <div class="field field-check">
-      <label class="switch">
-        <input type="checkbox" id="onlyPending">
-        <span>Ver solo pendientes</span>
-      </label>
-      <p class="verify-status" id="verifyStatus">Sin productos</p>
+      <div class="field field-check">
+        <label class="switch">
+          <input type="checkbox" id="onlyPending">
+          <span>Ver solo pendientes</span>
+        </label>
+        <p class="verify-status" id="verifyStatus">Sin productos</p>
+      </div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="table-head">
+        <div class="table-head-title">
+          <h2>Productos</h2>
+          <p class="combo-name" id="comboName" contenteditable="true" spellcheck="false" data-placeholder="Ponle nombre al combo…"></p>
+        </div>
+        <div class="table-head-actions">
+          <button class="btn btn-sm btn-primary" id="btnSave">Guardar combo</button>
+          <button class="btn btn-sm" id="btnAdd">+ Producto</button>
+          <button class="btn btn-sm btn-quiet" id="btnClear">Vaciar</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th class="c-check" title="Verificado">✓</th>
+              <th class="c-name">Producto</th>
+              <th class="c-num">Cant.</th>
+              <th class="c-unit">Unidad</th>
+              <th class="c-num">Costo <small>c/u · CUP o USD</small></th>
+              <th class="c-num">Costo USD <small>línea</small></th>
+              <th class="c-num">Venta USD <small>c/u</small></th>
+              <th class="c-num">Venta USD <small>línea</small></th>
+              <th class="c-num">Ganancia</th>
+              <th class="c-del"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="empty" id="empty">
+        <p class="empty-title">Todavía no hay productos</p>
+        <p>Pega la lista que te reenviaron por WhatsApp y la app la separa sola en cantidad, unidad y producto.</p>
+        <button class="btn btn-primary" id="btnImport2">Pegar lista de WhatsApp</button>
+      </div>
+    </section>
+  </section>
+
+  <!-- ============ HISTORIAL ============ -->
+  <section class="view" data-view="historial" hidden>
+
+    <section class="panel stats-panel" id="histStats" hidden>
+      <div class="stat">
+        <span class="stat-label">Combos guardados</span>
+        <strong class="stat-value" id="histCount">0</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Ganancia acumulada</span>
+        <strong class="stat-value pos" id="histProfit">$0.00</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Venta acumulada</span>
+        <strong class="stat-value" id="histSale">$0.00</strong>
+      </div>
+    </section>
+
+    <div class="cards" id="histList" hidden></div>
+
+    <div class="empty panel" id="histEmpty">
+      <p class="empty-title">El historial está vacío</p>
+      <p>Cuando termines un combo, ponle nombre y pulsa <b>Guardar combo</b>. Aquí queda con su fecha, su hora y la ganancia que dio.</p>
     </div>
   </section>
 
-  <!-- Tabla -->
-  <section class="panel table-panel">
-    <div class="table-head">
-      <h2>Productos</h2>
-      <div class="table-head-actions">
-        <button class="btn btn-sm" id="btnAdd">+ Producto</button>
-        <button class="btn btn-sm btn-quiet" id="btnClear">Vaciar</button>
+  <!-- ============ REMESAS ============ -->
+  <section class="view" data-view="remesas" hidden>
+
+    <section class="panel stats-panel stats-4">
+      <div class="stat">
+        <span class="stat-label">Ganancia total</span>
+        <strong class="stat-value" id="rGanTotal">$0.00</strong>
+        <span class="stat-sub">de las remesas pagadas</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Este mes</span>
+        <strong class="stat-value" id="rGanMes">$0.00</strong>
+        <span class="stat-sub">ganancia del mes corriente</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Por entregar</span>
+        <strong class="stat-value warn" id="rPendiente">$0.00</strong>
+        <span class="stat-sub" id="rPendienteN">nada por entregar</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Volumen movido</span>
+        <strong class="stat-value" id="rVolumen">$0.00</strong>
+        <span class="stat-sub" id="rVolumenN">0 remesas</span>
+      </div>
+    </section>
+
+    <div class="rem-bar">
+      <button class="btn btn-primary" id="btnNuevaRemesa">+ Nueva remesa</button>
+      <div class="rem-bar-right">
+        <button class="btn btn-sm btn-quiet" id="btnRemesasCopy">Copiar resumen</button>
+        <button class="btn btn-sm btn-quiet" id="btnRemesasCsv">CSV</button>
       </div>
     </div>
 
-    <div class="table-scroll">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th class="c-check" title="Verificado">✓</th>
-            <th class="c-name">Producto</th>
-            <th class="c-num">Cant.</th>
-            <th class="c-unit">Unidad</th>
-            <th class="c-num">Costo CUP <small>c/u</small></th>
-            <th class="c-num">Costo USD <small>línea</small></th>
-            <th class="c-num">Venta USD <small>c/u</small></th>
-            <th class="c-num">Venta USD <small>línea</small></th>
-            <th class="c-num">Ganancia</th>
-            <th class="c-del"></th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+    <div class="chips" id="rFilters" hidden>
+      <button class="chip on" data-filtro="todas">Todas</button>
+      <button class="chip" data-filtro="pendiente">Pendientes</button>
+      <button class="chip" data-filtro="pagada">Pagadas</button>
     </div>
 
-    <div class="empty" id="empty">
-      <p class="empty-title">Todavía no hay productos</p>
-      <p>Pega la lista que te reenviaron por WhatsApp y la app la separa sola en cantidad, unidad y producto.</p>
-      <button class="btn btn-primary" id="btnImport2">Pegar lista de WhatsApp</button>
+    <div class="cards" id="rList" hidden></div>
+
+    <div class="empty panel" id="rEmpty">
+      <p class="empty-title">Todavía no hay remesas</p>
+      <p>Registra cuánto entró por Zelle, cuánto efectivo recibiste a cambio y cuánto entregaste. La app saca la ganancia sola.</p>
+      <button class="btn btn-primary" id="btnNuevaRemesa2">Registrar la primera</button>
     </div>
+
+    <section class="panel meses-panel" id="rMesesWrap" hidden>
+      <h2>Mes a mes</h2>
+      <div id="rMeses"></div>
+    </section>
   </section>
 
 </main>
 
-<!-- Resumen fijo abajo -->
+<!-- Resumen fijo abajo (solo en Combo) -->
 <footer class="summary" id="summary">
   <div class="wrap summary-in">
     <button class="summary-toggle" id="summaryToggle" aria-expanded="false">
@@ -135,7 +223,7 @@
   </div>
 </footer>
 
-<!-- Modal importar -->
+<!-- Importar lista -->
 <dialog id="dlgImport">
   <form method="dialog" class="dlg-form">
     <header class="dlg-head">
@@ -163,6 +251,99 @@
   </form>
 </dialog>
 
+<!-- Remesa -->
+<dialog id="dlgRemesa">
+  <form method="dialog" class="dlg-form">
+    <header class="dlg-head">
+      <h2 id="rFormTitle">Nueva remesa</h2>
+      <button class="btn btn-ghost" value="cancel" aria-label="Cerrar">✕</button>
+    </header>
+    <div class="dlg-body">
+
+      <div class="grid2">
+        <div class="field">
+          <label for="f_cliente">Quién envía</label>
+          <input type="text" id="f_cliente" autocomplete="off" placeholder="Cliente">
+        </div>
+        <div class="field">
+          <label for="f_destinatario">Quién recibe en Cuba</label>
+          <input type="text" id="f_destinatario" autocomplete="off" placeholder="Destinatario">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f_telefono">Teléfono</label>
+        <input type="tel" id="f_telefono" autocomplete="off" placeholder="Opcional">
+      </div>
+
+      <h3 class="form-sec">El recorrido del dinero</h3>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="f_zelle">1 · Recibido por Zelle <span class="hint">USD</span></label>
+          <div class="input-money">
+            <span class="prefix">$</span>
+            <input type="text" inputmode="decimal" id="f_zelle" placeholder="0">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f_efectivo">2 · Efectivo en mano <span class="hint">USD</span></label>
+          <div class="input-money">
+            <span class="prefix">$</span>
+            <input type="text" inputmode="decimal" id="f_efectivo" placeholder="igual al Zelle">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="f_entregado">3 · Entregado</label>
+          <div class="input-money">
+            <input type="text" inputmode="decimal" id="f_entregado" placeholder="0">
+            <select id="f_entregadoCur" class="cur-select" aria-label="Moneda entregada">
+              <option value="USD">USD</option>
+              <option value="CUP">CUP</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" id="f_tasaWrap" hidden>
+          <label for="f_tasa">Tasa de esta remesa <span class="hint">CUP por USD</span></label>
+          <div class="input-money">
+            <span class="prefix">CUP</span>
+            <input type="text" inputmode="decimal" id="f_tasa" placeholder="440">
+          </div>
+        </div>
+      </div>
+
+      <div class="fprev">
+        <div><span class="fprev-k">Efectivo</span><span class="fprev-v" id="fPrevEfectivo">$0.00</span></div>
+        <div><span class="fprev-k">Al cambiar</span><span class="fprev-v" id="fPrevCambio">—</span></div>
+        <div><span class="fprev-k">Entregado en USD</span><span class="fprev-v" id="fPrevEntregado">$0.00</span></div>
+        <div><span class="fprev-k">Te queda</span><span class="fprev-v big" id="fPrevGanancia">$0.00</span></div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="f_status">Estado</label>
+          <select id="f_status" class="sel">
+            <option value="pendiente">Pendiente de entregar</option>
+            <option value="pagada">Pagada / entregada</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f_nota">Nota</label>
+          <input type="text" id="f_nota" autocomplete="off" placeholder="Dirección, referencia…">
+        </div>
+      </div>
+
+      <div class="dlg-actions">
+        <button type="button" class="btn btn-quiet" value="cancel">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnRemesaGuardar">Guardar remesa</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
 <!-- Menú -->
 <dialog id="dlgMenu">
   <form method="dialog" class="dlg-form dlg-menu">
@@ -171,10 +352,11 @@
       <button class="btn btn-ghost" value="cancel" aria-label="Cerrar">✕</button>
     </header>
     <div class="dlg-body">
+      <button type="button" class="menu-item" id="mGuardar"><b>Guardar combo</b><span>Lo manda al historial con fecha y hora</span></button>
+      <button type="button" class="menu-item" id="mNuevo"><b>Combo nuevo</b><span>Empieza uno en blanco</span></button>
       <button type="button" class="menu-item" id="mCopy"><b>Copiar resumen</b><span>Texto listo para WhatsApp</span></button>
-      <button type="button" class="menu-item" id="mCsv"><b>Descargar CSV</b><span>Abre en Excel</span></button>
       <button type="button" class="menu-item" id="mPrint"><b>Imprimir / PDF</b><span>Guardar el combo</span></button>
-      <button type="button" class="menu-item danger" id="mClear"><b>Vaciar todo</b><span>Borra productos y nombre</span></button>
+      <button type="button" class="menu-item danger" id="mBorrarTodo"><b>Borrar todo</b><span>Combos, historial y remesas</span></button>
       <p class="menu-foot">Los datos se guardan solos en este dispositivo.</p>
     </div>
   </form>
@@ -182,6 +364,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="app.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
