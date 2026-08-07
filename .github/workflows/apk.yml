@@ -32,10 +32,10 @@ jobs:
             -storepass combos123 -keypass combos123 \
             -dname "CN=Combos, OU=Rservasroma, O=Rservasroma, L=Havana, S=Havana, C=CU"
 
-      # bubblewrap prompts for the keystore + key password interactively;
-      # feed them on stdin instead of guessing exact CLI flag names.
+      # bubblewrap prompts interactively: "regenerate project?" (first build,
+      # no checksum yet) then keystore password then key password.
       - name: Build
-        run: printf 'combos123\ncombos123\n' | bubblewrap build --skipPwaValidation
+        run: printf 'y\ncombos123\ncombos123\n' | bubblewrap build --skipPwaValidation
 
       - uses: actions/upload-artifact@v4
         with:
