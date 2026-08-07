@@ -32,10 +32,14 @@ jobs:
             -storepass combos123 -keypass combos123 \
             -dname "CN=Combos, OU=Rservasroma, O=Rservasroma, L=Havana, S=Havana, C=CU"
 
-      # bubblewrap prompts interactively: "regenerate project?" (first build,
-      # no checksum yet) then keystore password then key password.
+      # Passwords via env vars skip those prompts entirely (see bubblewrap
+      # cmds/build.js getPasswords()). The only prompt left is "no checksum
+      # found, regenerate?" on first build, answered with "y" on stdin.
       - name: Build
-        run: printf 'y\ncombos123\ncombos123\n' | bubblewrap build --skipPwaValidation
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: combos123
+          BUBBLEWRAP_KEY_PASSWORD: combos123
+        run: printf 'y\n' | bubblewrap build --skipPwaValidation
 
       - uses: actions/upload-artifact@v4
         with:
