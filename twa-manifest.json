@@ -16,7 +16,7 @@
   "startUrl": "/calculadoracombos/",
   "iconUrl": "https://tusalon.github.io/calculadoracombos/icons/icon-512.png",
   "maskableIconUrl": "https://tusalon.github.io/calculadoracombos/icons/icon-maskable-512.png",
-  "appVersionName": "1",
+  "appVersion": "1",
   "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
