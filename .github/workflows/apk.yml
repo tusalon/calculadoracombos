@@ -25,20 +25,18 @@ jobs:
           { "jdkPath": "$JAVA_HOME", "androidSdkPath": "$ANDROID_HOME" }
           EOF
 
-      - name: Keystore (auto-generated, debug-only signing)
-        run: |
-          keytool -genkeypair -v -keystore android.keystore -alias combos \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass combos123 -keypass combos123 \
-            -dname "CN=Combos, OU=Rservasroma, O=Rservasroma, L=Havana, S=Havana, C=CU"
+      # Same keystore every run: the signing cert's fingerprint has to stay
+      # stable, it's what assetlinks.json on the site vouches for.
+      - name: Restore the permanent keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android.keystore
 
       # Passwords via env vars skip those prompts entirely (see bubblewrap
       # cmds/build.js getPasswords()). The only prompt left is "no checksum
       # found, regenerate?" on first build, answered with "y" on stdin.
       - name: Build
         env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: combos123
-          BUBBLEWRAP_KEY_PASSWORD: combos123
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: printf 'y\n' | bubblewrap build --skipPwaValidation
 
       - uses: actions/upload-artifact@v4

@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.tusalon.calculadoracombos",
+    "sha256_cert_fingerprints": [
+      "D4:04:FA:7A:16:99:23:80:D2:56:71:EE:34:13:2F:C8:6C:B5:67:AF:48:FC:53:B9:A4:F6:9C:B2:FC:FB:FB:1A"
+    ]
+  }
+}]
