@@ -159,6 +159,7 @@ function abrirForm(r = null) {
   $('#f_entregadoCur').value = r ? r.entregadoCur : 'USD';
   $('#f_status').value = r ? r.status : 'pendiente';
   $('#f_tasa').placeholder = qtyFmt(state.rate);
+  $('#f_descuento').value = '';   // calculadora de un solo uso, no se guarda con la remesa
   sincronizarForm();
   $('#dlgRemesa').showModal();
   setTimeout(() => $('#f_cliente').focus(), 60);
@@ -266,7 +267,16 @@ export function initRemesas(notify) {
   $('#btnRemesasCsv').addEventListener('click', csvRemesas);
   $('#btnRemesasCopy').addEventListener('click', () => copiar(resumenRemesas(), 'Resumen copiado'));
 
-  $('#dlgRemesa').addEventListener('input', sincronizarForm);
+  // El % de descuento solo recalcula Efectivo cuando cambia el o el Zelle;
+  // si el usuario ajusta Efectivo a mano despues, no se lo vuelve a pisar.
+  $('#dlgRemesa').addEventListener('input', e => {
+    if (e.target.id === 'f_zelle' || e.target.id === 'f_descuento') {
+      const p = num($('#f_descuento').value);
+      const zelle = num($('#f_zelle').value);
+      if (p > 0 && zelle > 0) $('#f_efectivo').value = qtyFmt(zelle * (1 - p / 100));
+    }
+    sincronizarForm();
+  });
   $('#f_entregadoCur').addEventListener('change', sincronizarForm);
   $('#f_status').addEventListener('change', sincronizarForm);
 

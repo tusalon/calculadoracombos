@@ -1,6 +1,6 @@
 # Calculadora de Combos
 
-PWA con tres secciones: **Combo** (armar y calcular), **Historial** (combos guardados) y **Remesas** (control de dinero por Zelle).
+PWA con cinco secciones: **Combo** (armar y calcular), **Historial** (combos guardados), **Remesas** (control de dinero por Zelle), **Compra/Venta** (trading de USD) y **Combo posible** (planificador de precios).
 
 ## Combo
 
@@ -27,11 +27,27 @@ Zelle recibido  →  efectivo USD en mano  →  entregado (USD o CUP)
 ```
 
 - Si no anotas el efectivo, se asume igual al Zelle.
+- **O calcula el efectivo con un %**: pon 100 en Zelle y 2 en el campo de descuento, y Efectivo se llena solo con 98. Sigue siendo editable después — si lo tocas a mano, ya no se recalcula solo hasta que vuelvas a cambiar el Zelle o el %.
 - Al entregar en CUP puedes fijar una **tasa propia de esa remesa** (distinta de la global).
 - **Ganancia = efectivo en mano − entregado.** La diferencia entre el Zelle y el efectivo se muestra aparte, como el costo de sacar el dinero.
 - Cada remesa lleva cliente, destinatario, teléfono, nota y estado **pendiente/pagada**.
 
 Arriba tienes las estadísticas: ganancia total, ganancia del mes, cuánto te falta por entregar y volumen movido, más un desglose mes a mes. La pestaña muestra un contador naranja con las remesas pendientes.
+
+## Compra/Venta de USD
+
+Trading simple: compras dólares a una tasa y los vendes a otra.
+
+- **Monto comprado** (USD) + **tasa de compra** (CUP por USD) = tu costo en CUP.
+- Cuando los vendes, pones la **tasa de venta** y la ganancia sale sola: `monto × (tasa venta − tasa compra)`.
+- Mientras no la marques vendida, queda **pendiente** — las estadísticas muestran cuánto capital tienes invertido esperando.
+- Mismo patrón que Remesas: filtros, mes a mes, CSV y resumen para copiar.
+
+## Combo posible
+
+Un planificador de precios, no una lista de compra real — no se guarda con nombre ni tiene historial, es un solo borrador que se recuerda entre visitas, como una calculadora de bolsillo.
+
+Añades productos con su costo (CUP o USD), pones el **margen que quieres ganar** (ej. 40%) y la tasa del USD para ese cálculo — puede ser distinta de la tasa real, para probar "qué pasaría si". La app te dice a cuánto vender cada uno para lograr ese margen.
 
 ## Lo que entiende el analizador
 
@@ -84,6 +100,8 @@ Sin dependencias ni build: HTML, CSS y módulos ES nativos.
 - `js/combo.js` — tabla, cálculos, importar y exportar
 - `js/historial.js` — combos guardados
 - `js/remesas.js` — remesas y estadísticas
+- `js/trading.js` — compra/venta de USD
+- `js/planner.js` — combo posible (planificador de precios)
 - `js/app.js` — navegación y arranque
 - `sw.js` — caché offline. **Sube `CACHE = 'combos-vN'` en cada cambio** para que los teléfonos ya instalados reciban la actualización.
 

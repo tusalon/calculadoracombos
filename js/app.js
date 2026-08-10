@@ -4,6 +4,8 @@ import { $, $$, state, num, qtyFmt, load, save, toast } from './core.js';
 import { initCombo, renderCombo, renderTotals, guardarCombo, nuevoCombo, summaryText, copiar } from './combo.js';
 import { initHistorial, renderHistorial } from './historial.js';
 import { initRemesas, renderRemesas } from './remesas.js';
+import { initTrading, renderTrading } from './trading.js';
+import { initPlanner, renderPlanner } from './planner.js';
 
 /* ---------- Navegación ---------- */
 
@@ -19,6 +21,8 @@ function irA(tab) {
   document.body.classList.toggle('no-summary', tab !== 'combo');
   if (tab === 'historial') renderHistorial();
   if (tab === 'remesas') renderRemesas();
+  if (tab === 'trading') renderTrading();
+  if (tab === 'planner') renderPlanner();
   scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -27,6 +31,7 @@ function irA(tab) {
 function refrescarTodo() {
   if (state.tab === 'historial') renderHistorial();
   if (state.tab === 'remesas') renderRemesas();
+  if (state.tab === 'trading') renderTrading();
   actualizarInsignias();
 }
 
@@ -39,6 +44,11 @@ function actualizarInsignias() {
   const r = $('#tabRemBadge');
   r.textContent = pend || '';
   r.hidden = !pend;
+
+  const pendT = state.trades.filter(t => t.status === 'pendiente').length;
+  const tb = $('#tabTradeBadge');
+  tb.textContent = pendT || '';
+  tb.hidden = !pendT;
 }
 
 /* ---------- Arranque ---------- */
@@ -48,6 +58,8 @@ load();
 initCombo(actualizarInsignias);
 initHistorial(refrescarTodo, () => irA('combo'));
 initRemesas(refrescarTodo);
+initTrading(refrescarTodo);
+initPlanner();
 
 $('#rate').value = qtyFmt(state.rate);
 $('#combos').value = state.current.combos;
@@ -73,14 +85,17 @@ $('#mPrint').addEventListener('click', () => { menu.close(); setTimeout(() => pr
 $('#mBorrarTodo').addEventListener('click', () => {
   menu.close();
   setTimeout(() => {
-    if (!confirm('Esto borra los productos, el historial de combos y las remesas de este dispositivo. ¿Seguro?')) return;
+    if (!confirm('Esto borra los productos, el historial de combos, las remesas, las compras de USD y el planificador de este dispositivo. ¿Seguro?')) return;
     state.current = { name: '', combos: 1, items: [], fromId: null };
     state.saved = [];
     state.remesas = [];
+    state.trades = [];
+    state.planner.items = [];
     $('#comboName').textContent = '';
     $('#combos').value = 1;
     save();
     renderCombo();
+    renderPlanner();
     refrescarTodo();
     toast('Todo borrado');
   }, 100);
@@ -106,6 +121,7 @@ $('#summaryToggle').addEventListener('click', () => {
 /* ---------- Primer pintado ---------- */
 
 renderCombo();
+renderPlanner();
 actualizarInsignias();
 irA('combo');
 
@@ -127,4 +143,6 @@ if ('serviceWorker' in navigator) {
 import * as parser from './parser.js';
 import * as remesasMod from './remesas.js';
 import * as comboMod from './combo.js';
-window.__calc = { state, ...parser, ...comboMod, ...remesasMod, num, irA };
+import * as tradingMod from './trading.js';
+import * as plannerMod from './planner.js';
+window.__calc = { state, ...parser, ...comboMod, ...remesasMod, ...tradingMod, ...plannerMod, num, irA };

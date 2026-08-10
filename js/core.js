@@ -11,7 +11,9 @@ export const state = {
   tab: 'combo',
   current: { name: '', combos: 1, items: [], fromId: null },
   saved: [],    // combos guardados con fecha
-  remesas: []
+  remesas: [],
+  trades: [],   // compra/venta de USD
+  planner: { rate: 440, marginPct: 40, items: [] }   // borrador único de "combo posible"
 };
 
 let seq = 1;
@@ -112,7 +114,9 @@ export function save() {
         rate: state.rate,
         current: state.current,
         saved: state.saved,
-        remesas: state.remesas
+        remesas: state.remesas,
+        trades: state.trades,
+        planner: state.planner
       }));
     } catch {}
   }, 250);
@@ -182,4 +186,28 @@ export function load() {
     entregadoCur: r.entregadoCur === 'CUP' ? 'CUP' : 'USD',
     tasa: num(r.tasa)
   }));
+
+  state.trades = (d.trades || []).map(t => ({
+    id: t.id || newId('t'),
+    createdAt: t.createdAt || nowIso(),
+    soldAt: t.soldAt || null,
+    status: t.status === 'vendida' ? 'vendida' : 'pendiente',
+    monto: num(t.monto),
+    tasaCompra: num(t.tasaCompra),
+    tasaVenta: num(t.tasaVenta),
+    nota: t.nota || ''
+  }));
+
+  const p = d.planner || {};
+  state.planner = {
+    rate: num(p.rate) || 440,
+    marginPct: num(p.marginPct) || 0,
+    items: (p.items || []).map(i => ({
+      id: newId(),
+      name: i.name || '',
+      qty: num(i.qty) || 1,
+      cost: num(i.cost),
+      costCur: i.costCur === 'USD' ? 'USD' : 'CUP'
+    }))
+  };
 }

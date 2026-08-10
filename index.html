@@ -30,6 +30,8 @@
     <button class="tab on" data-tab="combo" role="tab" aria-selected="true">Combo</button>
     <button class="tab" data-tab="historial" role="tab" aria-selected="false">Historial <span class="badge-n" id="tabHistBadge" hidden></span></button>
     <button class="tab" data-tab="remesas" role="tab" aria-selected="false">Remesas <span class="badge-n warn" id="tabRemBadge" hidden></span></button>
+    <button class="tab" data-tab="trading" role="tab" aria-selected="false">Compra/Venta <span class="badge-n warn" id="tabTradeBadge" hidden></span></button>
+    <button class="tab" data-tab="planner" role="tab" aria-selected="false">Combo posible</button>
   </nav>
 </header>
 
@@ -184,6 +186,133 @@
     </section>
   </section>
 
+  <!-- ============ COMPRA/VENTA DE USD ============ -->
+  <section class="view" data-view="trading" hidden>
+
+    <section class="panel stats-panel stats-4">
+      <div class="stat">
+        <span class="stat-label">Ganancia total</span>
+        <strong class="stat-value" id="tGanTotal">0 CUP</strong>
+        <span class="stat-sub">de lo ya vendido</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Este mes</span>
+        <strong class="stat-value" id="tGanMes">0 CUP</strong>
+        <span class="stat-sub">ganancia del mes corriente</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Por vender</span>
+        <strong class="stat-value warn" id="tPendiente">$0.00</strong>
+        <span class="stat-sub" id="tPendienteN">nada por vender</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Volumen comprado</span>
+        <strong class="stat-value" id="tVolumen">$0.00</strong>
+        <span class="stat-sub" id="tVolumenN">0 operaciones</span>
+      </div>
+    </section>
+
+    <div class="rem-bar">
+      <button class="btn btn-primary" id="btnNuevaCompra">+ Nueva compra</button>
+      <div class="rem-bar-right">
+        <button class="btn btn-sm btn-quiet" id="btnTradingCopy">Copiar resumen</button>
+        <button class="btn btn-sm btn-quiet" id="btnTradingCsv">CSV</button>
+      </div>
+    </div>
+
+    <div class="chips" id="tFilters" hidden>
+      <button class="chip on" data-filtro="todas">Todas</button>
+      <button class="chip" data-filtro="pendiente">Pendientes</button>
+      <button class="chip" data-filtro="vendida">Vendidas</button>
+    </div>
+
+    <div class="cards" id="tList" hidden></div>
+
+    <div class="empty panel" id="tEmpty">
+      <p class="empty-title">Todavía no hay compras</p>
+      <p>Registra cuántos USD compraste, a qué tasa, y a qué tasa los vendiste. La app calcula la diferencia sola.</p>
+      <button class="btn btn-primary" id="btnNuevaCompra2">Registrar la primera</button>
+    </div>
+
+    <section class="panel meses-panel" id="tMesesWrap" hidden>
+      <h2>Mes a mes</h2>
+      <div id="tMeses"></div>
+    </section>
+  </section>
+
+  <!-- ============ COMBO POSIBLE ============ -->
+  <section class="view" data-view="planner" hidden>
+
+    <section class="panel rate-panel">
+      <div class="field">
+        <label for="pMargin">Margen deseado <span class="hint">%</span></label>
+        <div class="input-money">
+          <input type="text" inputmode="decimal" id="pMargin" autocomplete="off">
+          <span class="prefix">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="pRate">Precio del USD <span class="hint">para este cálculo</span></label>
+        <div class="input-money">
+          <span class="prefix">CUP</span>
+          <input type="text" inputmode="decimal" id="pRate" autocomplete="off">
+        </div>
+      </div>
+    </section>
+
+    <section class="panel stats-panel stats-4">
+      <div class="stat">
+        <span class="stat-label">Costo total</span>
+        <strong class="stat-value" id="pCostoTotal">$0.00</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Venta sugerida</span>
+        <strong class="stat-value" id="pVentaTotal">$0.00</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Ganancia</span>
+        <strong class="stat-value pos" id="pGananciaTotal">$0.00</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Margen real</span>
+        <strong class="stat-value" id="pMargenReal">—</strong>
+      </div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="table-head">
+        <div class="table-head-title"><h2>Productos</h2></div>
+        <div class="table-head-actions">
+          <button class="btn btn-sm" id="btnPAdd">+ Producto</button>
+          <button class="btn btn-sm btn-quiet" id="btnPClear">Vaciar</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table id="pTbl">
+          <thead>
+            <tr>
+              <th class="c-name">Producto</th>
+              <th class="c-num">Cant.</th>
+              <th class="c-num">Costo <small>c/u · CUP o USD</small></th>
+              <th class="c-num">Venta sugerida <small>c/u</small></th>
+              <th class="c-num">Costo USD <small>línea</small></th>
+              <th class="c-num">Venta sugerida <small>línea</small></th>
+              <th class="c-num">Ganancia</th>
+              <th class="c-del"></th>
+            </tr>
+          </thead>
+          <tbody id="pTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="empty" id="pEmpty">
+        <p class="empty-title">Todavía no hay productos</p>
+        <p>Añade cada producto con su costo y un margen deseado, y aquí verás el precio de venta que te conviene poner.</p>
+      </div>
+    </section>
+  </section>
+
 </main>
 
 <!-- Resumen fijo abajo (solo en Combo) -->
@@ -295,6 +424,14 @@
         </div>
       </div>
 
+      <div class="field field-pct">
+        <label for="f_descuento">O calcula el efectivo restando un % al Zelle <span class="hint">opcional</span></label>
+        <div class="input-money input-pct">
+          <input type="text" inputmode="decimal" id="f_descuento" placeholder="0">
+          <span class="prefix">%</span>
+        </div>
+      </div>
+
       <div class="grid2">
         <div class="field">
           <label for="f_entregado">3 · Entregado</label>
@@ -339,6 +476,69 @@
       <div class="dlg-actions">
         <button type="button" class="btn btn-quiet" value="cancel">Cancelar</button>
         <button type="button" class="btn btn-primary" id="btnRemesaGuardar">Guardar remesa</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Compra/venta de USD -->
+<dialog id="dlgTrade">
+  <form method="dialog" class="dlg-form">
+    <header class="dlg-head">
+      <h2 id="tFormTitle">Nueva compra de USD</h2>
+      <button class="btn btn-ghost" value="cancel" aria-label="Cerrar">✕</button>
+    </header>
+    <div class="dlg-body">
+
+      <div class="grid2">
+        <div class="field">
+          <label for="g_monto">Monto comprado <span class="hint">USD</span></label>
+          <div class="input-money">
+            <span class="prefix">$</span>
+            <input type="text" inputmode="decimal" id="g_monto" placeholder="0">
+          </div>
+        </div>
+        <div class="field">
+          <label for="g_tasaCompra">Tasa de compra <span class="hint">CUP por USD</span></label>
+          <div class="input-money">
+            <span class="prefix">CUP</span>
+            <input type="text" inputmode="decimal" id="g_tasaCompra" placeholder="440">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="g_tasaVenta">Tasa de venta <span class="hint">CUP por USD, cuando la vendas</span></label>
+          <div class="input-money">
+            <span class="prefix">CUP</span>
+            <input type="text" inputmode="decimal" id="g_tasaVenta" placeholder="opcional">
+          </div>
+        </div>
+        <div class="field">
+          <label for="g_status">Estado</label>
+          <select id="g_status" class="sel">
+            <option value="pendiente">Pendiente de vender</option>
+            <option value="vendida">Ya vendida</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fprev">
+        <div><span class="fprev-k">Costo</span><span class="fprev-v" id="gPrevCosto">0 CUP</span></div>
+        <div><span class="fprev-k">Venta</span><span class="fprev-v" id="gPrevVenta">—</span></div>
+        <div><span class="fprev-k">Diferencia</span><span class="fprev-v" id="gPrevDif">—</span></div>
+        <div><span class="fprev-k">Ganancia</span><span class="fprev-v big" id="gPrevGanancia">—</span></div>
+      </div>
+
+      <div class="field">
+        <label for="g_nota">Nota</label>
+        <input type="text" id="g_nota" autocomplete="off" placeholder="Opcional">
+      </div>
+
+      <div class="dlg-actions">
+        <button type="button" class="btn btn-quiet" value="cancel">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnTradeGuardar">Guardar</button>
       </div>
     </div>
   </form>
