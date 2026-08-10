@@ -44,11 +44,6 @@ function actualizarInsignias() {
   const r = $('#tabRemBadge');
   r.textContent = pend || '';
   r.hidden = !pend;
-
-  const pendT = state.trades.filter(t => t.status === 'pendiente').length;
-  const tb = $('#tabTradeBadge');
-  tb.textContent = pendT || '';
-  tb.hidden = !pendT;
 }
 
 /* ---------- Arranque ---------- */

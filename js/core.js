@@ -137,6 +137,41 @@ function normItem(i) {
   };
 }
 
+// Compra/venta: cada operación es independiente (tipo compra o venta).
+// La primera versión de esta pestaña guardaba un lote emparejado
+// {monto, tasaCompra, tasaVenta, status}; se separa en sus operaciones reales.
+function migrarTrade(t) {
+  if (t.tipo) {
+    return [{
+      id: t.id || newId('t'),
+      createdAt: t.createdAt || nowIso(),
+      tipo: t.tipo === 'venta' ? 'venta' : 'compra',
+      monto: num(t.monto),
+      tasa: num(t.tasa),
+      nota: t.nota || ''
+    }];
+  }
+  const out = [{
+    id: newId('t'),
+    createdAt: t.createdAt || nowIso(),
+    tipo: 'compra',
+    monto: num(t.monto),
+    tasa: num(t.tasaCompra),
+    nota: t.nota || ''
+  }];
+  if (t.status === 'vendida' && num(t.tasaVenta) > 0) {
+    out.push({
+      id: newId('t'),
+      createdAt: t.soldAt || t.createdAt || nowIso(),
+      tipo: 'venta',
+      monto: num(t.monto),
+      tasa: num(t.tasaVenta),
+      nota: t.nota || ''
+    });
+  }
+  return out;
+}
+
 export function load() {
   let d = null;
   try { d = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch {}
@@ -187,16 +222,7 @@ export function load() {
     tasa: num(r.tasa)
   }));
 
-  state.trades = (d.trades || []).map(t => ({
-    id: t.id || newId('t'),
-    createdAt: t.createdAt || nowIso(),
-    soldAt: t.soldAt || null,
-    status: t.status === 'vendida' ? 'vendida' : 'pendiente',
-    monto: num(t.monto),
-    tasaCompra: num(t.tasaCompra),
-    tasaVenta: num(t.tasaVenta),
-    nota: t.nota || ''
-  }));
+  state.trades = (d.trades || []).flatMap(migrarTrade);
 
   const p = d.planner || {};
   state.planner = {
