@@ -232,6 +232,7 @@ export function load() {
       id: newId(),
       name: i.name || '',
       qty: num(i.qty) || 1,
+      unit: i.unit || 'u',
       cost: num(i.cost),
       costCur: i.costCur === 'USD' ? 'USD' : 'CUP'
     }))

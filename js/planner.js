@@ -1,6 +1,7 @@
 /* Calculadora de combo posible: costo por producto + margen deseado -> precio de venta sugerido */
 
-import { $, state, newId, num, usd, pct, esc, qtyFmt, toast, save } from './core.js';
+import { $, state, newId, num, usd, pct, esc, qtyFmt, unitFmt, toast, save } from './core.js';
+import { copiar } from './combo.js';
 
 let onChanged = () => {};
 let tbody;
@@ -37,6 +38,7 @@ function rowHTML(it) {
   return `<tr data-id="${it.id}">
     <td class="c-name"><input class="cell-input name" data-f="name" value="${esc(it.name)}" placeholder="Producto"></td>
     <td class="c-qty c-num" data-label="Cantidad"><input class="cell-input num" data-f="qty" inputmode="decimal" value="${qtyFmt(it.qty)}"></td>
+    <td class="c-unit" data-label="Unidad"><input class="cell-input cell-unit" data-f="unit" list="units" value="${esc(it.unit)}"></td>
     <td class="c-cost c-num" data-label="Costo c/u">
       <div class="cost-wrap">
         <button type="button" class="cur-btn ${it.costCur === 'USD' ? 'is-usd' : ''}" data-act="cur">${it.costCur}</button>
@@ -82,6 +84,25 @@ function renderTotals() {
 function repintarTodo() {
   state.planner.items.forEach(paintRow);
   renderTotals();
+}
+
+/* ============================================================
+   Resumen para WhatsApp
+   ============================================================ */
+
+function summaryText() {
+  const t = totals();
+  const L = ['*Combo posible*'];
+  L.push(`Margen: ${qtyFmt(state.planner.marginPct)}% · Tasa: ${qtyFmt(state.planner.rate)} CUP = 1 USD`);
+  L.push('');
+  for (const it of state.planner.items) {
+    if (!it.name.trim()) continue;
+    const r = calcRow(it);
+    L.push(`• ${it.name} — ${qtyFmt(it.qty)} ${unitFmt(it.unit, it.qty)} — ${usd(r.suggestedUnit)} c/u`);
+  }
+  L.push('');
+  L.push(`Precio total sugerido: ${usd(t.saleUsd)}`);
+  return L.join('\n');
 }
 
 /* ============================================================
@@ -137,7 +158,7 @@ export function initPlanner(notify) {
   });
 
   $('#btnPAdd').addEventListener('click', () => {
-    state.planner.items.push({ id: newId(), name: '', qty: 1, cost: 0, costCur: 'CUP' });
+    state.planner.items.push({ id: newId(), name: '', qty: 1, unit: 'u', cost: 0, costCur: 'CUP' });
     renderPlanner();
     const last = tbody.querySelector('tr:last-child [data-f="name"]');
     last?.focus();
@@ -149,5 +170,10 @@ export function initPlanner(notify) {
     state.planner.items = [];
     renderPlanner();
     toast('Planificador vacío');
+  });
+
+  $('#btnPCopy').addEventListener('click', () => {
+    if (!state.planner.items.some(i => i.name.trim())) { toast('Añade productos primero'); return; }
+    copiar(summaryText(), 'Resumen copiado');
   });
 }
