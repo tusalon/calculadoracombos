@@ -98,7 +98,7 @@ function summaryText() {
   for (const it of state.planner.items) {
     if (!it.name.trim()) continue;
     const r = calcRow(it);
-    L.push(`• ${it.name} — ${qtyFmt(it.qty)} ${unitFmt(it.unit, it.qty)} — ${usd(r.suggestedUnit)} c/u`);
+    L.push(`• ${it.name} — ${qtyFmt(it.qty)} ${unitFmt(it.unit, it.qty)} — ${usd(r.saleUsd)}`);
   }
   L.push('');
   L.push(`Precio total sugerido: ${usd(t.saleUsd)}`);
@@ -132,7 +132,7 @@ export function initPlanner(notify) {
     if (!f) return;
     const it = itemDe(e.target);
     if (!it) return;
-    it[f] = f === 'name' ? e.target.value : num(e.target.value);
+    it[f] = (f === 'name' || f === 'unit') ? e.target.value : num(e.target.value);
     paintRow(it);
     renderTotals();
   });
