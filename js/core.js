@@ -3,8 +3,26 @@
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-const STORE = 'calccombos.v2';
+const STORE_BASE = 'calccombos.v2';
 const STORE_V1 = 'calccombos.v1';
+
+// Cada cuenta guarda aparte en este dispositivo: si dos personas usan el mismo
+// teléfono, una no ve ni pisa los datos de la otra.
+let STORE = STORE_BASE;
+
+export function setStoreUser(uid) {
+  STORE = uid ? STORE_BASE + '.' + uid : STORE_BASE;
+  // Primera vez que esta cuenta entra aquí: adopta los datos que ya había
+  // sueltos en el dispositivo, en vez de empezar en blanco.
+  if (uid && !localStorage.getItem(STORE)) {
+    const viejo = localStorage.getItem(STORE_BASE);
+    if (viejo) {
+      localStorage.setItem(STORE, viejo);
+      // Se los queda la primera cuenta que entre, no todas las que pasen por aquí.
+      localStorage.removeItem(STORE_BASE);
+    }
+  }
+}
 
 export const state = {
   rate: 440,
@@ -105,20 +123,28 @@ export function toast(msg) {
 
 /* ---------- Guardado ---------- */
 
+// Lo que se guarda, en un solo sitio: lo usa tanto el disco como la nube.
+export const snapshot = () => ({
+  rate: state.rate,
+  current: state.current,
+  saved: state.saved,
+  remesas: state.remesas,
+  trades: state.trades,
+  planner: state.planner,
+  _ts: nowIso()          // para saber qué copia es más nueva, la de aquí o la de la nube
+});
+
+// Lo rellena auth.js cuando hay sesión; sin sesión la app guarda solo en el disco.
+let subirANube = null;
+export const setCloudSync = fn => { subirANube = fn; };
+
 let saveT;
 export function save() {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
-    try {
-      localStorage.setItem(STORE, JSON.stringify({
-        rate: state.rate,
-        current: state.current,
-        saved: state.saved,
-        remesas: state.remesas,
-        trades: state.trades,
-        planner: state.planner
-      }));
-    } catch {}
+    const d = snapshot();
+    try { localStorage.setItem(STORE, JSON.stringify(d)); } catch {}
+    if (subirANube) subirANube(d);
   }, 250);
 }
 
@@ -172,9 +198,13 @@ function migrarTrade(t) {
   return out;
 }
 
-export function load() {
-  let d = null;
-  try { d = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch {}
+export const leerLocal = () => {
+  try { return JSON.parse(localStorage.getItem(STORE) || 'null'); } catch { return null; }
+};
+
+// Sin argumento lee el disco; con argumento aplica lo que venga (p. ej. la nube).
+export function load(datos) {
+  let d = datos !== undefined ? datos : leerLocal();
 
   if (!d) {
     // Migración desde la primera versión: un solo combo suelto, sin historial

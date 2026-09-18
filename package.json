@@ -1,0 +1,6 @@
+{
+  "name": "calculadora-combos",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node test-permisos.mjs" }
+}

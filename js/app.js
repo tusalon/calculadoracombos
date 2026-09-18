@@ -6,10 +6,20 @@ import { initHistorial, renderHistorial } from './historial.js';
 import { initRemesas, renderRemesas } from './remesas.js';
 import { initTrading, renderTrading } from './trading.js';
 import { initPlanner, renderPlanner } from './planner.js';
+import { arrancarAuth, puede } from './auth.js';
+import { initAdmin } from './admin.js';
+
+/* ---------- Puerta de entrada ---------- */
+
+// Hasta aquí llega quien no ha iniciado sesión: auth.js ya dejó puesta la
+// pantalla de entrada, y esta promesa que nunca se resuelve corta el arranque.
+const sesion = await arrancarAuth();
+if (!sesion) await new Promise(() => {});
 
 /* ---------- Navegación ---------- */
 
 function irA(tab) {
+  if (!puede(tab)) tab = PESTANAS_VISIBLES[0] || 'combo';
   state.tab = tab;
   $$('.tab').forEach(b => {
     const on = b.dataset.tab === tab;
@@ -46,9 +56,27 @@ function actualizarInsignias() {
   r.hidden = !pend;
 }
 
+/* ---------- Permisos ---------- */
+
+// Esto ordena la pantalla: esconde lo que esta persona no usa. Lo que de verdad
+// protege los datos de unos frente a otros son las reglas RLS de Supabase.
+let PESTANAS_VISIBLES = [];
+
+function aplicarPermisos() {
+  PESTANAS_VISIBLES = $$('.tab').map(b => b.dataset.tab).filter(puede);
+  $$('.tab').forEach(b => { b.hidden = !puede(b.dataset.tab); });
+  $$('.view').forEach(v => { if (!puede(v.dataset.view)) v.hidden = true; });
+  // Una sola sección permitida: las pestañas no pintan nada.
+  $('.tabs').hidden = PESTANAS_VISIBLES.length < 2;
+  $('#menuSesion').hidden = !!sesion.anonimo;
+  $('#syncDot').hidden = !!sesion.anonimo;
+}
+
 /* ---------- Arranque ---------- */
 
-load();
+load(sesion.datos);
+aplicarPermisos();
+initAdmin();
 
 initCombo(actualizarInsignias);
 initHistorial(refrescarTodo, () => irA('combo'));
@@ -118,7 +146,7 @@ $('#summaryToggle').addEventListener('click', () => {
 renderCombo();
 renderPlanner();
 actualizarInsignias();
-irA('combo');
+irA(PESTANAS_VISIBLES[0] || 'combo');
 
 /* ---------- Service worker ---------- */
 

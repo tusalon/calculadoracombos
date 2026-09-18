@@ -1,6 +1,6 @@
 /* Service worker: app shell offline */
 // Sube este número en cada cambio de archivos para forzar la actualización.
-const CACHE = 'combos-v7';
+const CACHE = 'combos-v9';
 const SHELL = [
   './',
   './index.html',
@@ -14,6 +14,10 @@ const SHELL = [
   './js/trading.js',
   './js/planner.js',
   './js/app.js',
+  './js/config.js',
+  './js/auth.js',
+  './js/admin.js',
+  './js/vendor/supabase.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];

@@ -23,6 +23,7 @@
     </div>
     <div class="topbar-actions">
       <button class="btn btn-primary" id="btnImport">Pegar lista</button>
+      <span class="sync-dot" id="syncDot" hidden title="Todo guardado en la nube"></span>
       <button class="btn btn-ghost" id="btnMenu" aria-label="Más opciones">⋯</button>
     </div>
   </div>
@@ -547,14 +548,69 @@
       <button type="button" class="menu-item" id="mNuevo"><b>Combo nuevo</b><span>Empieza uno en blanco</span></button>
       <button type="button" class="menu-item" id="mCopy"><b>Copiar resumen</b><span>Texto listo para WhatsApp</span></button>
       <button type="button" class="menu-item" id="mPrint"><b>Imprimir / PDF</b><span>Guardar el combo</span></button>
+      <button type="button" class="menu-item" id="mAdmin" hidden><b>Usuarios y permisos</b><span>Quién entra y qué puede ver</span></button>
       <button type="button" class="menu-item danger" id="mBorrarTodo"><b>Borrar todo</b><span>Combos, historial y remesas</span></button>
-      <p class="menu-foot">Los datos se guardan solos en este dispositivo.</p>
+      <div class="menu-sesion" id="menuSesion" hidden>
+        <div>
+          <b id="sesionNombre"></b>
+          <span id="sesionRol" class="muted"></span>
+        </div>
+        <button type="button" class="btn btn-sm" id="btnSalir">Salir</button>
+      </div>
+      <p class="menu-foot">Los datos se guardan solos y se copian a tu cuenta.</p>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ ENTRAR ============ -->
+<div class="auth-screen" id="authScreen" hidden>
+  <form class="auth-card" id="authForm">
+    <div class="brand auth-brand">
+      <span class="brand-mark">$</span>
+      <h2 id="authTitulo">Entrar</h2>
+    </div>
+    <p class="auth-intro">Tus combos, remesas y compras te siguen de un teléfono a otro.</p>
+
+    <div class="field" id="authNombreCampo" hidden>
+      <label for="authNombre">Tu nombre</label>
+      <input id="authNombre" type="text" autocomplete="name" placeholder="Cómo quieres que te llamen">
+    </div>
+    <div class="field">
+      <label for="authEmail">Correo</label>
+      <input id="authEmail" type="email" autocomplete="email" required placeholder="tucorreo@ejemplo.com">
+    </div>
+    <div class="field">
+      <label for="authPass">Contraseña</label>
+      <input id="authPass" type="password" autocomplete="current-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+    </div>
+
+    <p class="auth-msg" id="authMsg" role="status" aria-live="polite"></p>
+    <button class="btn btn-primary btn-block" id="authSubmit" type="submit">Entrar</button>
+    <button class="btn btn-sm btn-block" id="authModo" type="button">Crear una cuenta</button>
+  </form>
+</div>
+
+<!-- ============ USUARIOS (admin) ============ -->
+<dialog id="dlgAdmin">
+  <form method="dialog" class="dlg-form">
+    <header class="dlg-head">
+      <h2>Usuarios y permisos</h2>
+      <button class="btn btn-ghost" value="cancel" aria-label="Cerrar">&#10005;</button>
+    </header>
+    <div class="dlg-body">
+      <p class="muted">Marca qué secciones ve cada persona. Se guarda al momento.</p>
+      <div id="adminLista" class="adm-lista"></div>
+      <div class="dlg-actions">
+        <button type="button" class="btn btn-sm" id="adminRecargar">Recargar</button>
+        <button class="btn btn-primary" value="ok">Listo</button>
+      </div>
     </div>
   </form>
 </dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="js/vendor/supabase.js"></script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

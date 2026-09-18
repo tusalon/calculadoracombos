@@ -2,6 +2,8 @@
 
 PWA con cinco secciones: **Combo** (armar y calcular), **Historial** (combos guardados), **Remesas** (control de dinero por Zelle), **Compra/Venta** (trading de USD) y **Combo posible** (planificador de precios).
 
+Con [Supabase configurado](#cuentas-y-permisos) cada persona entra con su cuenta, sus datos la siguen de un teléfono a otro y el administrador decide qué secciones ve cada quien. Sin configurar, la app funciona igual que siempre: local, sin cuentas y sin internet.
+
 ## Combo
 
 1. **Declara la tasa** — cuántos CUP vale 1 USD.
@@ -74,8 +76,35 @@ Si un producto ya está en la tabla, al importarlo otra vez **suma la cantidad**
 - **Ver solo pendientes** — esconde lo ya verificado.
 - **Copiar resumen** — texto listo para mandar por WhatsApp (hay uno para el combo y otro para las remesas).
 - **CSV** — se abre en Excel (separador `;`, decimales con coma).
-- Todo se guarda solo en el dispositivo (`localStorage`). No hay servidor ni cuentas.
-- Funciona sin internet una vez abierta.
+- Todo se guarda solo en el dispositivo (`localStorage`) y, si hay cuenta, se copia a tu espacio en Supabase.
+- Funciona sin internet una vez abierta: entra con la última sesión y sube lo pendiente cuando vuelve la señal.
+
+## Cuentas y permisos
+
+Opcional. Sin configurar nada, la app sigue siendo local y sin cuentas.
+
+### Montarlo (una vez)
+
+1. Crea un proyecto gratis en [supabase.com](https://supabase.com).
+2. **SQL Editor** → pega el contenido de `supabase.sql` entero → *Run*.
+3. **Settings → API** → copia *Project URL* y la clave **anon / public** en `js/config.js`.
+4. Sube `CACHE = 'combos-vN'` en `sw.js` y publica.
+
+La clave anon es pública por diseño y puede ir en el repositorio: lo que protege los datos son las reglas RLS, no el secreto de la clave. La que **nunca** debe aparecer ahí es la `service_role`.
+
+### Cómo funciona
+
+- **El primero que se registra queda como administrador.** No hay que coronar a nadie a mano desde la consola de Supabase. Del segundo en adelante entran como usuarios normales, viendo solo Combo, Historial y Combo posible.
+- El admin abre **⋯ → Usuarios y permisos** y marca qué secciones ve cada persona. Se guarda al momento. También puede hacer admin a alguien, o desactivar una cuenta para que no entre.
+- Nadie puede quitarse ni darse permisos a sí mismo, y la base no deja que te quedes sin ningún administrador.
+- **Los datos son de cada quien.** Cada usuario ve solo los suyos, en cualquier teléfono donde entre. El admin puede consultar los de los demás desde Supabase, pero no escribirlos.
+- El puntito verde de la barra dice que todo está subido; en naranja, que hay cambios esperando a que vuelva internet.
+
+Esconder pestañas es orden, no cerradura: lo que de verdad impide que alguien lea datos ajenos son las reglas RLS de `supabase.sql`, que se aplican en el servidor aunque el usuario trastee la consola del navegador.
+
+### Si ya venías usando la app sin cuenta
+
+Los combos y remesas que ya tenías en el teléfono se los queda la primera cuenta que entre en ese dispositivo, y se suben a la nube solos. No hay que exportar ni importar nada.
 
 ## Instalar en el teléfono
 
@@ -102,14 +131,25 @@ Sin dependencias ni build: HTML, CSS y módulos ES nativos.
 - `js/remesas.js` — remesas y estadísticas
 - `js/trading.js` — compra/venta de USD
 - `js/planner.js` — combo posible (planificador de precios)
-- `js/app.js` — navegación y arranque
+- `js/app.js` — navegación, permisos de pestañas y arranque
+- `js/config.js` — URL y clave de Supabase (vacío = modo local)
+- `js/auth.js` — sesión, permisos y sincronización con la nube
+- `js/admin.js` — panel de usuarios y permisos
+- `js/vendor/supabase.js` — cliente de Supabase, guardado aquí para que la app abra sin internet
+- `supabase.sql` — tablas y reglas de acceso, para pegar en Supabase
 - `sw.js` — caché offline. **Sube `CACHE = 'combos-vN'` en cada cambio** para que los teléfonos ya instalados reciban la actualización.
 
-Los datos viven en `localStorage` bajo `calccombos.v2`. Al arrancar, si solo existe `calccombos.v1` (la versión de un solo combo suelto), se migra sola y el costo de cada producto se marca como CUP.
+Los datos viven en `localStorage` bajo `calccombos.v2` — y, cuando hay cuenta, bajo `calccombos.v2.<id de usuario>`, para que dos personas que compartan teléfono no se pisen. Al arrancar, si solo existe `calccombos.v1` (la versión de un solo combo suelto), se migra sola y el costo de cada producto se marca como CUP.
 
 Para probar desde la consola del navegador:
 
 ```js
 __calc.parseList('10 lbs d arroz\n2 laticas d tomate')
 __calc.calcRemesa({zelle:100, efectivo:95, entregado:90, entregadoCur:'USD', tasa:0})
+```
+
+Los permisos y la elección de copia (teléfono contra nube) tienen su comprobación aparte:
+
+```bash
+node test-permisos.mjs
 ```

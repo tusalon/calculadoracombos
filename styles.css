@@ -33,6 +33,9 @@
 }
 
 * { box-sizing: border-box; }
+/* El atributo hidden debe ganarle a cualquier display de clase
+   (.auth-screen es grid, .tab es flex): si no, esconder deja de esconder. */
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -452,3 +455,64 @@ dialog::backdrop { background: rgba(20,24,21,.55); backdrop-filter: blur(2px); }
   .summary-detail { display: block !important; }
   .panel, .hist-card, .rem-card { box-shadow: none; break-inside: avoid; }
 }
+
+/* ---------- Entrar ---------- */
+.auth-screen {
+  position: fixed; inset: 0; z-index: 90;
+  display: grid; place-items: center; padding: 20px;
+  background: var(--bg); overflow-y: auto;
+}
+body.sin-sesion { overflow: hidden; }
+body.sin-sesion .topbar, body.sin-sesion main, body.sin-sesion #summary { display: none; }
+
+.auth-card {
+  width: min(380px, 100%);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 16px; box-shadow: var(--shadow); padding: 24px 22px;
+}
+.auth-brand { margin-bottom: 6px; }
+.auth-brand h2 { font-size: 20px; }
+.auth-intro { margin: 0 0 18px; font-size: 13.5px; color: var(--ink-soft); }
+.auth-card .field { margin-bottom: 12px; }
+.auth-card input {
+  width: 100%; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface-2); color: inherit; font: 15px/1 inherit;
+  padding: 12px 10px; outline: none;
+}
+.auth-card input:focus { border-color: var(--green); }
+.auth-msg { margin: 10px 0; font-size: 13px; color: var(--amber); min-height: 1.2em; }
+.btn-block { width: 100%; justify-content: center; margin-top: 6px; }
+
+/* Punto de sincronización en la barra */
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); align-self: center; margin-right: 4px; }
+.sync-dot.pendiente { background: var(--amber); }
+
+/* Sesión dentro del menú */
+.menu-sesion {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border-top: 1px solid var(--line); margin-top: 8px; padding: 10px 12px 4px;
+}
+.menu-sesion b { display: block; font-weight: 600; }
+.menu-sesion .muted { font-size: 12.5px; }
+
+/* ---------- Usuarios y permisos ---------- */
+.muted { color: var(--ink-soft); }
+.adm-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.adm-user { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--surface-2); }
+.adm-user.inactivo { opacity: .55; }
+.adm-head b { font-weight: 650; }
+.adm-mail { display: block; font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+.adm-tag {
+  display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; margin-left: 6px;
+  background: var(--surface); color: var(--ink-soft); border: 1px solid var(--line);
+}
+.adm-tag.admin { background: var(--green-soft); color: var(--green); border-color: transparent; }
+.adm-tag.off { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+.adm-perms { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0; }
+.adm-perms .muted { font-size: 13px; margin: 0; }
+.adm-chk { display: flex; align-items: center; gap: 6px; font-size: 13.5px; cursor: pointer; }
+.adm-chk input { width: 17px; height: 17px; accent-color: var(--green); }
+.adm-chk input:disabled + span { color: var(--ink-soft); }
+.adm-acc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.adm-acc .muted { font-size: 12.5px; }
