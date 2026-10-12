@@ -119,6 +119,7 @@ $('#mBorrarTodo').addEventListener('click', () => {
     state.trades = [];
     state.planner.items = [];
     state.ficha.items = [];
+    state.fichas = [];
     $('#comboName').textContent = '';
     $('#combos').value = 1;
     save();

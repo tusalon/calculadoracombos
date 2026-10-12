@@ -32,7 +32,8 @@ export const state = {
   remesas: [],
   trades: [],   // compra/venta de USD
   planner: { rate: 440, marginPct: 40, items: [] },   // borrador único de "combo posible"
-  ficha: { name: '', rate: 440, yield: 1, marginPct: 0, items: [] }   // ficha de costo en curso
+  ficha: { name: '', rate: 440, yield: 1, marginPct: 0, fromId: null, items: [] },   // ficha de costo en curso
+  fichas: []    // fichas guardadas
 };
 
 let seq = 1;
@@ -133,6 +134,7 @@ export const snapshot = () => ({
   trades: state.trades,
   planner: state.planner,
   ficha: state.ficha,
+  fichas: state.fichas,
   _ts: nowIso()          // para saber qué copia es más nueva, la de aquí o la de la nube
 });
 
@@ -199,6 +201,28 @@ function migrarTrade(t) {
     });
   }
   return out;
+}
+
+// Cada producto es un paquete (packQty packUnit a price) del que se usa useQty useUnit.
+// La primera versión guardaba qty/unit/cost: es el mismo cálculo con paquete de 1.
+function normFicha(f = {}) {
+  return {
+    name: f.name || '',
+    rate: num(f.rate) || 440,
+    yield: Math.max(1, num(f.yield) || 1),
+    marginPct: num(f.marginPct) || 0,
+    fromId: f.fromId || null,
+    items: (f.items || []).map(i => ({
+      id: newId(),
+      name: i.name || '',
+      packQty: num(i.packQty) || 1,
+      packUnit: i.packUnit || i.unit || 'u',
+      price: i.price !== undefined ? num(i.price) : num(i.cost),
+      costCur: i.costCur === 'USD' ? 'USD' : 'CUP',
+      useQty: i.useQty !== undefined ? num(i.useQty) : (num(i.qty) || 1),
+      useUnit: i.useUnit || ''
+    }))
+  };
 }
 
 export const leerLocal = () => {
@@ -271,23 +295,6 @@ export function load(datos) {
     }))
   };
 
-  const f = d.ficha || {};
-  state.ficha = {
-    name: f.name || '',
-    rate: num(f.rate) || 440,
-    yield: Math.max(1, num(f.yield) || 1),
-    marginPct: num(f.marginPct) || 0,
-    // Cada producto es un paquete (packQty packUnit a price) del que se usa useQty useUnit.
-    // La primera versión guardaba qty/unit/cost: es el mismo cálculo con paquete de 1.
-    items: (f.items || []).map(i => ({
-      id: newId(),
-      name: i.name || '',
-      packQty: num(i.packQty) || 1,
-      packUnit: i.packUnit || i.unit || 'u',
-      price: i.price !== undefined ? num(i.price) : num(i.cost),
-      costCur: i.costCur === 'USD' ? 'USD' : 'CUP',
-      useQty: i.useQty !== undefined ? num(i.useQty) : (num(i.qty) || 1),
-      useUnit: i.useUnit || ''
-    }))
-  };
+  state.ficha = normFicha(d.ficha);
+  state.fichas = (d.fichas || []).map(x => ({ ...normFicha(x), id: x.id || newId('f'), savedAt: x.savedAt || nowIso() }));
 }

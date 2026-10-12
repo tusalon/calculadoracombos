@@ -1,6 +1,6 @@
 /* Service worker: app shell offline */
 // Sube este número en cada cambio de archivos para forzar la actualización.
-const CACHE = 'combos-v12';
+const CACHE = 'combos-v13';
 const SHELL = [
   './',
   './index.html',

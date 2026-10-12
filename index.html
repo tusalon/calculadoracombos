@@ -367,7 +367,9 @@
       <div class="table-head">
         <div class="table-head-title"><h2>Productos e insumos</h2></div>
         <div class="table-head-actions">
-          <button class="btn btn-sm btn-primary" id="btnFCopy">Copiar ficha</button>
+          <button class="btn btn-sm btn-primary" id="btnFSave">Guardar ficha</button>
+          <button class="btn btn-sm" id="btnFCopy">Copiar ficha</button>
+          <button class="btn btn-sm" id="btnFNew">Nueva</button>
           <button class="btn btn-sm" id="btnFAdd">+ Producto</button>
           <button class="btn btn-sm btn-quiet" id="btnFClear">Vaciar</button>
         </div>
@@ -395,6 +397,11 @@
         <p class="empty-title">Ficha vacía</p>
         <p>Añade cada producto como lo compras (ej. bolsa de 1 kg a 1400) y pon cuánto usaste (50 g). La ficha calcula el costo de esa parte, suma todo, separa CUP de USD y da el costo por unidad.</p>
       </div>
+    </section>
+
+    <section class="panel meses-panel" id="fSavedWrap" hidden>
+      <h2>Fichas guardadas</h2>
+      <div id="fSaved" class="cards"></div>
     </section>
   </section>
 

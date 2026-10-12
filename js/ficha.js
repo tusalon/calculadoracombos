@@ -23,8 +23,8 @@ function factor(usada, paquete) {
   return null;   // unidades que no se pueden comparar
 }
 
-function calcRow(it) {
-  const rate = state.ficha.rate > 0 ? state.ficha.rate : 0;
+function calcRow(it, tasa = state.ficha.rate) {
+  const rate = tasa > 0 ? tasa : 0;
   const fct = factor(it.useUnit, it.packUnit);
   const fraccion = fct === null || !(it.packQty > 0) ? 0 : it.useQty * fct / it.packQty;
   const native = it.price * fraccion;           // en la moneda en que se paga
@@ -33,14 +33,15 @@ function calcRow(it) {
   return { costUsd, costCup, native, incompatible: fct === null };
 }
 
-function totals() {
+function totals() { return totalsDe(state.ficha); }
+
+function totalsDe(f) {
   const t = { costUsd: 0, costCup: 0, gastoCup: 0, gastoUsd: 0 };
-  for (const it of state.ficha.items) {
-    const r = calcRow(it);
+  for (const it of f.items) {
+    const r = calcRow(it, f.rate);
     t.costUsd += r.costUsd; t.costCup += r.costCup;
     if (it.costCur === 'CUP') t.gastoCup += r.native; else t.gastoUsd += r.native;
   }
-  const f = state.ficha;
   t.porUnidad = t.costUsd / Math.max(1, f.yield);
   t.precio = t.porUnidad * (1 + f.marginPct / 100);
   return t;
@@ -96,6 +97,7 @@ function renderTotals() {
 
 export function renderFicha() {
   const f = state.ficha;
+  renderGuardadas();
   $('#fName').value = f.name;
   $('#fRate').value = qtyFmt(f.rate);
   $('#fYield').value = qtyFmt(f.yield);
@@ -104,6 +106,47 @@ export function renderFicha() {
   $('#fEmpty').hidden = f.items.length > 0;
   $('#fTbl').hidden = f.items.length === 0;
   renderTotals();
+}
+
+/* ---------- Fichas guardadas ---------- */
+
+function renderGuardadas() {
+  const L = [...state.fichas].sort((a, b) => (a.savedAt < b.savedAt ? 1 : -1));
+  $('#fSavedWrap').hidden = !L.length;
+  $('#fSaved').innerHTML = L.map(x => {
+    const t = totalsDe(x);
+    return `<article class="hist-card ${state.ficha.fromId === x.id ? 'is-open' : ''}" data-id="${x.id}">
+      <header class="hist-head">
+        <div class="hist-title"><h3>${esc(x.name || 'Sin nombre')}</h3>
+          <p class="hist-meta">${x.items.length} producto${x.items.length === 1 ? '' : 's'} · rinde ${qtyFmt(x.yield)}</p></div>
+        <div class="hist-profit"><strong>${usd(t.porUnidad)}</strong><span>por unidad</span></div>
+      </header>
+      <footer class="hist-actions">
+        <button class="btn btn-sm" data-act="abrir">Abrir</button>
+        <button class="btn btn-sm btn-quiet danger" data-act="borrar">Borrar</button>
+      </footer>
+    </article>`;
+  }).join('');
+}
+
+function guardarFicha() {
+  const f = state.ficha;
+  if (!f.name.trim()) { toast('Ponle nombre a la ficha'); $('#fName').focus(); return; }
+  if (!f.items.length) { toast('Añade productos primero'); return; }
+  const copia = { name: f.name.trim(), rate: f.rate, yield: f.yield, marginPct: f.marginPct,
+    items: f.items.map(i => ({ ...i })), savedAt: new Date().toISOString() };
+  const previa = f.fromId && state.fichas.find(x => x.id === f.fromId);
+  if (previa) Object.assign(previa, copia);
+  else { const id = newId('f'); state.fichas.push({ id, ...copia }); f.fromId = id; }
+  save();
+  renderGuardadas();
+  toast(`"${copia.name}" guardada`);
+}
+
+function nuevaFicha() {
+  if (state.ficha.items.length && !state.ficha.fromId && !confirm('La ficha en pantalla no está guardada y se va a vaciar. ¿Seguir?')) return;
+  state.ficha = { name: '', rate: state.ficha.rate, yield: 1, marginPct: 0, fromId: null, items: [] };
+  renderFicha();
 }
 
 /* ---------- Resumen para WhatsApp ---------- */
@@ -166,6 +209,26 @@ export function initFicha() {
     f().items.push({ id: newId(), name: '', packQty: 1, packUnit: 'u', price: 0, costCur: 'CUP', useQty: 1, useUnit: '' });
     renderFicha();
     tbody.querySelector('tr:last-child [data-f="name"]')?.focus();
+  });
+  $('#btnFSave').addEventListener('click', guardarFicha);
+  $('#btnFNew').addEventListener('click', nuevaFicha);
+  $('#fSaved').addEventListener('click', e => {
+    const act = e.target.dataset.act;
+    const x = act && state.fichas.find(y => y.id === e.target.closest('.hist-card').dataset.id);
+    if (!x) return;
+    if (act === 'abrir') {
+      if (state.ficha.items.length && !state.ficha.fromId && !confirm('La ficha en pantalla no está guardada y se va a reemplazar. ¿Seguir?')) return;
+      state.ficha = { name: x.name, rate: x.rate, yield: x.yield, marginPct: x.marginPct, fromId: x.id,
+        items: x.items.map(i => ({ ...i, id: newId() })) };
+      renderFicha();
+      scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (act === 'borrar' && confirm(`¿Borrar la ficha "${x.name}"?`)) {
+      state.fichas = state.fichas.filter(y => y.id !== x.id);
+      if (state.ficha.fromId === x.id) state.ficha.fromId = null;
+      save();
+      renderGuardadas();
+    }
   });
   $('#btnFClear').addEventListener('click', () => {
     if (f().items.length && !confirm('¿Vaciar la ficha de costo?')) return;
