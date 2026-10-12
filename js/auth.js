@@ -17,7 +17,8 @@ export const PESTANAS = [
   ['historial', 'Historial'],
   ['remesas', 'Remesas'],
   ['trading', 'Compra/Venta'],
-  ['planner', 'Combo posible']
+  ['planner', 'Combo posible'],
+  ['ficha', 'Ficha de costo']
 ];
 
 const PERFIL_CACHE = 'calccombos.perfil';

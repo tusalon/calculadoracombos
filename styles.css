@@ -516,3 +516,18 @@ body.sin-sesion .topbar, body.sin-sesion main, body.sin-sesion #summary { displa
 .adm-chk input:disabled + span { color: var(--ink-soft); }
 .adm-acc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .adm-acc .muted { font-size: 12.5px; }
+
+/* ---------- En casa / ficha de costo ---------- */
+td.c-home { text-align: center; width: 70px; }
+td.c-home label { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); cursor: pointer; }
+td.c-home input { width: 19px; height: 19px; accent-color: var(--green); }
+.home-txt { display: none; }
+tbody tr.en-casa .c-costusd .calc { text-decoration: line-through; opacity: .6; }
+tbody tr.en-casa { background: color-mix(in srgb, var(--amber-soft) 55%, transparent); }
+.per-combo.gasto { margin-top: 0; }
+.ficha-top { grid-template-columns: 1fr; }
+@media (min-width: 620px) { .ficha-top { grid-template-columns: 1.6fr 1fr 1fr 1fr; } }
+@media (max-width: 760px) {
+  td.c-home { grid-column: span 6; order: 9; text-align: left; width: auto; }
+  .home-txt { display: inline; }
+}

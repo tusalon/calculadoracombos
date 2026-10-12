@@ -31,7 +31,8 @@ export const state = {
   saved: [],    // combos guardados con fecha
   remesas: [],
   trades: [],   // compra/venta de USD
-  planner: { rate: 440, marginPct: 40, items: [] }   // borrador único de "combo posible"
+  planner: { rate: 440, marginPct: 40, items: [] },   // borrador único de "combo posible"
+  ficha: { name: '', rate: 440, yield: 1, marginPct: 0, items: [] }   // ficha de costo en curso
 };
 
 let seq = 1;
@@ -131,6 +132,7 @@ export const snapshot = () => ({
   remesas: state.remesas,
   trades: state.trades,
   planner: state.planner,
+  ficha: state.ficha,
   _ts: nowIso()          // para saber qué copia es más nueva, la de aquí o la de la nube
 });
 
@@ -159,7 +161,8 @@ function normItem(i) {
     cost,
     costCur: i.costCur === 'USD' ? 'USD' : 'CUP',
     saleUsd: num(i.saleUsd),
-    ok: !!i.ok
+    ok: !!i.ok,
+    enCasa: !!i.enCasa     // ya lo tengo: no cuenta como costo
   };
 }
 
@@ -259,6 +262,22 @@ export function load(datos) {
     rate: num(p.rate) || 440,
     marginPct: num(p.marginPct) || 0,
     items: (p.items || []).map(i => ({
+      id: newId(),
+      name: i.name || '',
+      qty: num(i.qty) || 1,
+      unit: i.unit || 'u',
+      cost: num(i.cost),
+      costCur: i.costCur === 'USD' ? 'USD' : 'CUP'
+    }))
+  };
+
+  const f = d.ficha || {};
+  state.ficha = {
+    name: f.name || '',
+    rate: num(f.rate) || 440,
+    yield: Math.max(1, num(f.yield) || 1),
+    marginPct: num(f.marginPct) || 0,
+    items: (f.items || []).map(i => ({
       id: newId(),
       name: i.name || '',
       qty: num(i.qty) || 1,

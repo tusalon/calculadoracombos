@@ -11,21 +11,28 @@ import { UNITS, parseList } from './parser.js';
    ============================================================ */
 
 // El costo puede estar declarado en CUP o en USD; se convierte con la tasa.
+// Lo que ya está en la casa (it.enCasa) no se compró: no cuenta como costo,
+// pero sí se vende. gastoCup/gastoUsd separan lo que se paga en cada moneda,
+// sin convertir, para saber cuánto sale realmente de cada bolsillo.
 export function calcRow(it, rate = state.rate) {
   const r = rate > 0 ? rate : 0;
+  const gasta = it.enCasa ? 0 : 1;
   const unitUsd = it.costCur === 'USD' ? it.cost : (r ? it.cost / r : 0);
   const unitCup = it.costCur === 'USD' ? it.cost * r : it.cost;
-  const costUsd = it.qty * unitUsd;
-  const costCup = it.qty * unitCup;
+  const costUsd = gasta * it.qty * unitUsd;
+  const costCup = gasta * it.qty * unitCup;
+  const gastoCup = it.costCur === 'CUP' ? gasta * it.qty * it.cost : 0;
+  const gastoUsd = it.costCur === 'USD' ? gasta * it.qty * it.cost : 0;
   const saleUsd = it.qty * it.saleUsd;
-  return { costCup, costUsd, saleUsd, profit: saleUsd - costUsd };
+  return { costCup, costUsd, gastoCup, gastoUsd, saleUsd, profit: saleUsd - costUsd };
 }
 
 export function totalsOf(items, rate) {
-  const t = { costCup: 0, costUsd: 0, saleUsd: 0, profit: 0 };
+  const t = { costCup: 0, costUsd: 0, gastoCup: 0, gastoUsd: 0, saleUsd: 0, profit: 0 };
   for (const it of items) {
     const r = calcRow(it, rate);
     t.costCup += r.costCup; t.costUsd += r.costUsd;
+    t.gastoCup += r.gastoCup; t.gastoUsd += r.gastoUsd;
     t.saleUsd += r.saleUsd; t.profit += r.profit;
   }
   t.margin = t.saleUsd > 0 ? (t.profit / t.saleUsd) * 100 : null;
@@ -34,11 +41,11 @@ export function totalsOf(items, rate) {
 
 export const totals = () => totalsOf(state.current.items, state.rate);
 
-const isMissing = it => !(it.cost > 0) || !(it.saleUsd > 0);
+const isMissing = it => !(it.enCasa || it.cost > 0) || !(it.saleUsd > 0);
 
 export const nuevoItem = (o = {}) => ({
   id: newId(), name: '', qty: 1, unit: 'u',
-  cost: 0, costCur: 'CUP', saleUsd: 0, ok: false, ...o
+  cost: 0, costCur: 'CUP', saleUsd: 0, ok: false, enCasa: false, ...o
 });
 
 /* ============================================================
@@ -48,7 +55,7 @@ export const nuevoItem = (o = {}) => ({
 let tbody, onChanged = () => {};
 
 function rowHTML(it) {
-  const cls = [it.ok ? 'done' : '', isMissing(it) ? 'missing' : ''].filter(Boolean).join(' ');
+  const cls = [it.ok ? 'done' : '', isMissing(it) ? 'missing' : '', it.enCasa ? 'en-casa' : ''].filter(Boolean).join(' ');
   return `<tr data-id="${it.id}" class="${cls}">
     <td class="c-check"><input type="checkbox" data-f="ok" ${it.ok ? 'checked' : ''} aria-label="Verificado"></td>
     <td class="c-name"><input class="cell-input name" data-f="name" value="${esc(it.name)}" placeholder="Producto"></td>
@@ -61,6 +68,7 @@ function rowHTML(it) {
         <input class="cell-input num" data-f="cost" inputmode="decimal" value="${it.cost ? qtyFmt(it.cost) : ''}" placeholder="0">
       </div>
     </td>
+    <td class="c-home"><label title="Ya lo tengo en la casa: no cuenta como costo"><input type="checkbox" data-f="enCasa" ${it.enCasa ? 'checked' : ''} aria-label="Ya lo tengo en casa"><span class="home-txt">Ya lo tengo en casa</span></label></td>
     <td class="c-costusd c-num" data-label="Costo USD"><span class="calc muted" data-o="costUsd"></span></td>
     <td class="c-sale c-num" data-label="Venta USD c/u"><input class="cell-input num" data-f="saleUsd" inputmode="decimal" value="${it.saleUsd ? qtyFmt(it.saleUsd) : ''}" placeholder="0"></td>
     <td class="c-saleusd c-num" data-label="Venta USD"><span class="calc" data-o="saleUsd"></span></td>
@@ -93,6 +101,7 @@ function paintRow(it) {
   set('profit', usd(r.profit), r.profit > 0 ? 'pos' : r.profit < 0 ? 'neg' : 'muted');
   tr.classList.toggle('done', !!it.ok);
   tr.classList.toggle('missing', isMissing(it));
+  tr.classList.toggle('en-casa', !!it.enCasa);
 }
 
 export function renderTotals() {
@@ -107,6 +116,10 @@ export function renderTotals() {
   $('#sCostUsd').textContent = usd(t.costUsd);
   $('#sSaleUsd').textContent = usd(t.saleUsd);
   $('#sProfitCup').textContent = cup(t.profit * state.rate);
+  $('#sGastoCup').textContent = cup(t.gastoCup);
+  $('#sGastoUsd').textContent = usd(t.gastoUsd);
+  const casa = items.filter(i => i.enCasa).length;
+  $('#sEnCasa').textContent = casa ? `${casa} producto${casa > 1 ? 's' : ''}` : 'ninguno';
 
   const n = state.current.combos;
   const pc = $('#perCombo');
@@ -212,10 +225,12 @@ export function summaryText() {
   L.push('');
   for (const it of state.current.items) {
     const r = calcRow(it);
-    L.push(`• ${it.name} — ${qtyFmt(it.qty)} ${unitFmt(it.unit, it.qty)} — venta ${usd(r.saleUsd)}`);
+    L.push(`• ${it.name} — ${qtyFmt(it.qty)} ${unitFmt(it.unit, it.qty)} — venta ${usd(r.saleUsd)}${it.enCasa ? ' (en casa)' : ''}`);
   }
   L.push('');
-  L.push(`Costo: ${cup(t.costCup)} (${usd(t.costUsd)})`);
+  L.push(`Gasto en CUP: ${cup(t.gastoCup)}`);
+  L.push(`Gasto en USD: ${usd(t.gastoUsd)}`);
+  L.push(`Costo total: ${usd(t.costUsd)} (${cup(t.costCup)} a la tasa)`);
   L.push(`Venta: ${usd(t.saleUsd)}`);
   L.push(`Ganancia: ${usd(t.profit)}${t.margin === null ? '' : ` (${pct(t.margin)})`}`);
   if (state.current.combos > 1) {
@@ -249,13 +264,15 @@ export const dec = n => String(Math.round(n * 100) / 100).replace('.', ',');
 
 function csvCombo() {
   const t = totals();
-  const filas = [['Producto', 'Cantidad', 'Unidad', 'Costo c/u', 'Moneda costo', 'Costo CUP linea', 'Costo USD linea', 'Venta USD c/u', 'Venta USD linea', 'Ganancia USD']];
+  const filas = [['Producto', 'Cantidad', 'Unidad', 'Costo c/u', 'Moneda costo', 'En casa', 'Costo CUP linea', 'Costo USD linea', 'Venta USD c/u', 'Venta USD linea', 'Ganancia USD']];
   for (const it of state.current.items) {
     const r = calcRow(it);
-    filas.push([it.name, dec(it.qty), it.unit, dec(it.cost), it.costCur, dec(r.costCup), dec(r.costUsd), dec(it.saleUsd), dec(r.saleUsd), dec(r.profit)]);
+    filas.push([it.name, dec(it.qty), it.unit, dec(it.cost), it.costCur, it.enCasa ? 'si' : '', dec(r.costCup), dec(r.costUsd), dec(it.saleUsd), dec(r.saleUsd), dec(r.profit)]);
   }
   filas.push([]);
-  filas.push(['TOTAL', '', '', '', '', dec(t.costCup), dec(t.costUsd), '', dec(t.saleUsd), dec(t.profit)]);
+  filas.push(['TOTAL', '', '', '', '', '', dec(t.costCup), dec(t.costUsd), '', dec(t.saleUsd), dec(t.profit)]);
+  filas.push(['Gasto en CUP', dec(t.gastoCup)]);
+  filas.push(['Gasto en USD', dec(t.gastoUsd)]);
   filas.push(['Tasa USD', dec(state.rate)]);
   descargarCsv(filas, state.current.name || 'combo');
 }
@@ -282,7 +299,7 @@ export function initCombo(notify) {
     const it = itemDe(e.target);
     if (!it) return;
     if (f === 'name' || f === 'unit') it[f] = e.target.value;
-    else if (f === 'ok') it.ok = e.target.checked;
+    else if (f === 'ok' || f === 'enCasa') it[f] = e.target.checked;
     else it[f] = num(e.target.value);
     paintRow(it);
     renderTotals();

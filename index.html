@@ -33,6 +33,7 @@
     <button class="tab" data-tab="remesas" role="tab" aria-selected="false">Remesas <span class="badge-n warn" id="tabRemBadge" hidden></span></button>
     <button class="tab" data-tab="trading" role="tab" aria-selected="false">Compra/Venta</button>
     <button class="tab" data-tab="planner" role="tab" aria-selected="false">Combo posible</button>
+    <button class="tab" data-tab="ficha" role="tab" aria-selected="false">Ficha de costo</button>
   </nav>
 </header>
 
@@ -88,6 +89,7 @@
               <th class="c-num">Cant.</th>
               <th class="c-unit">Unidad</th>
               <th class="c-num">Costo <small>c/u · CUP o USD</small></th>
+              <th class="c-home" title="Ya lo tengo en la casa: no cuenta como costo">En casa</th>
               <th class="c-num">Costo USD <small>línea</small></th>
               <th class="c-num">Venta USD <small>c/u</small></th>
               <th class="c-num">Venta USD <small>línea</small></th>
@@ -316,6 +318,84 @@
     </section>
   </section>
 
+  <!-- ============ FICHA DE COSTO ============ -->
+  <section class="view" data-view="ficha" hidden>
+
+    <section class="panel rate-panel ficha-top">
+      <div class="field">
+        <label for="fName">Nombre de la ficha</label>
+        <div class="input-money"><input type="text" id="fName" autocomplete="off" placeholder="Ej: Croquetas, Combo desayuno…"></div>
+      </div>
+      <div class="field">
+        <label for="fYield">Rinde <span class="hint">unidades o porciones</span></label>
+        <div class="input-money"><input type="text" inputmode="decimal" id="fYield" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label for="fRate">Precio del USD <span class="hint">CUP</span></label>
+        <div class="input-money"><span class="prefix">CUP</span><input type="text" inputmode="decimal" id="fRate" autocomplete="off"></div>
+      </div>
+      <div class="field">
+        <label for="fMargin">Margen deseado <span class="hint">% opcional</span></label>
+        <div class="input-money"><input type="text" inputmode="decimal" id="fMargin" autocomplete="off"><span class="prefix">%</span></div>
+      </div>
+    </section>
+
+    <section class="panel stats-panel stats-4">
+      <div class="stat">
+        <span class="stat-label">Costo total</span>
+        <strong class="stat-value" id="fCostoTotal">$0.00</strong>
+        <span class="stat-sub" id="fCostoTotalN">0 CUP a la tasa</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Se paga en CUP</span>
+        <strong class="stat-value" id="fGastoCup">0 CUP</strong>
+        <span class="stat-sub">sin convertir</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Se paga en USD</span>
+        <strong class="stat-value" id="fGastoUsd">$0.00</strong>
+        <span class="stat-sub">sin convertir</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Costo por unidad</span>
+        <strong class="stat-value pos" id="fPorUnidad">$0.00</strong>
+        <span class="stat-sub" id="fPorUnidadN">entre 1 unidad</span>
+      </div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="table-head">
+        <div class="table-head-title"><h2>Productos e insumos</h2></div>
+        <div class="table-head-actions">
+          <button class="btn btn-sm btn-primary" id="btnFCopy">Copiar ficha</button>
+          <button class="btn btn-sm" id="btnFAdd">+ Producto</button>
+          <button class="btn btn-sm btn-quiet" id="btnFClear">Vaciar</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table id="fTbl">
+          <thead>
+            <tr>
+              <th class="c-name">Producto</th>
+              <th class="c-num">Cant.</th>
+              <th class="c-unit">Unidad</th>
+              <th class="c-num">Costo <small>c/u · CUP o USD</small></th>
+              <th class="c-num">Costo USD <small>línea</small></th>
+              <th class="c-num">Costo CUP <small>línea</small></th>
+              <th class="c-num">% del total</th>
+              <th class="c-del"></th>
+            </tr>
+          </thead>
+          <tbody id="fTbody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="fEmpty">
+        <p class="empty-title">Ficha vacía</p>
+        <p>Añade cada producto con su cantidad y costo (en CUP o USD). La ficha suma todo, separa lo que pagas en cada moneda y te da el costo por unidad.</p>
+      </div>
+    </section>
+  </section>
+
 </main>
 
 <!-- Resumen fijo abajo (solo en Combo) -->
@@ -339,6 +419,14 @@
         <div><dt>Venta total</dt><dd id="sSaleUsd">$0.00</dd></div>
         <div><dt>Ganancia en CUP</dt><dd id="sProfitCup">0 CUP</dd></div>
       </dl>
+      <div class="per-combo gasto">
+        <h3>Lo que realmente sale de tu bolsillo</h3>
+        <dl>
+          <div><dt>Pagado en CUP</dt><dd id="sGastoCup">0 CUP</dd></div>
+          <div><dt>Pagado en USD</dt><dd id="sGastoUsd">$0.00</dd></div>
+          <div><dt>Ya en casa</dt><dd id="sEnCasa">ninguno</dd></div>
+        </dl>
+      </div>
       <div class="per-combo" id="perCombo" hidden>
         <h3>Por cada combo <span id="pcCount"></span></h3>
         <dl>

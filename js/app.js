@@ -6,6 +6,7 @@ import { initHistorial, renderHistorial } from './historial.js';
 import { initRemesas, renderRemesas } from './remesas.js';
 import { initTrading, renderTrading } from './trading.js';
 import { initPlanner, renderPlanner } from './planner.js';
+import { initFicha, renderFicha } from './ficha.js';
 import { arrancarAuth, puede } from './auth.js';
 import { initAdmin } from './admin.js';
 
@@ -33,6 +34,7 @@ function irA(tab) {
   if (tab === 'remesas') renderRemesas();
   if (tab === 'trading') renderTrading();
   if (tab === 'planner') renderPlanner();
+  if (tab === 'ficha') renderFicha();
   scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -83,6 +85,7 @@ initHistorial(refrescarTodo, () => irA('combo'));
 initRemesas(refrescarTodo);
 initTrading(refrescarTodo);
 initPlanner();
+initFicha();
 
 $('#rate').value = qtyFmt(state.rate);
 $('#combos').value = state.current.combos;
@@ -114,6 +117,7 @@ $('#mBorrarTodo').addEventListener('click', () => {
     state.remesas = [];
     state.trades = [];
     state.planner.items = [];
+    state.ficha.items = [];
     $('#comboName').textContent = '';
     $('#combos').value = 1;
     save();

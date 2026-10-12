@@ -22,7 +22,7 @@ create table if not exists public.profiles (
   -- Qué pestañas ve. Los que entran nuevos empiezan con lo básico;
   -- el admin les abre Remesas y Compra/Venta cuando toque.
   perms      jsonb   not null default
-             '{"combo":true,"historial":true,"remesas":false,"trading":false,"planner":true}'::jsonb,
+             '{"combo":true,"historial":true,"remesas":false,"trading":false,"planner":true,"ficha":true}'::jsonb,
   created_at timestamptz not null default now()
 );
 
@@ -78,8 +78,8 @@ begin
     coalesce(nullif(trim(new.raw_user_meta_data->>'nombre'), ''), split_part(new.email, '@', 1)),
     primero,
     case when primero
-      then '{"combo":true,"historial":true,"remesas":true,"trading":true,"planner":true}'::jsonb
-      else '{"combo":true,"historial":true,"remesas":false,"trading":false,"planner":true}'::jsonb
+      then '{"combo":true,"historial":true,"remesas":true,"trading":true,"planner":true,"ficha":true}'::jsonb
+      else '{"combo":true,"historial":true,"remesas":false,"trading":false,"planner":true,"ficha":true}'::jsonb
     end
   )
   on conflict (id) do nothing;
