@@ -76,9 +76,10 @@ h1, h2, h3 { margin: 0; font-weight: 650; letter-spacing: -.01em; }
 .topbar h1 { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar-actions { display: flex; gap: 8px; flex: none; }
 
-.tabs { display: flex; gap: 2px; padding-bottom: 0; }
+.tabs { display: flex; gap: 2px; padding-bottom: 0; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.tabs::-webkit-scrollbar { display: none; }
 .tab {
-  flex: 1; font: inherit; font-weight: 600; font-size: 14px;
+  flex: 1 0 auto; white-space: nowrap; font: inherit; font-weight: 600; font-size: 14px;
   background: transparent; border: 0; border-bottom: 2.5px solid transparent;
   color: var(--ink-soft); padding: 9px 6px 10px; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;

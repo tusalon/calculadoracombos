@@ -26,6 +26,7 @@ function irA(tab) {
     const on = b.dataset.tab === tab;
     b.classList.toggle('on', on);
     b.setAttribute('aria-selected', String(on));
+    if (on) b.scrollIntoView({ inline: 'center', block: 'nearest' });
   });
   $$('.view').forEach(v => { v.hidden = v.dataset.view !== tab; });
   $('#summary').hidden = tab !== 'combo';
