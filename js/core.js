@@ -277,13 +277,17 @@ export function load(datos) {
     rate: num(f.rate) || 440,
     yield: Math.max(1, num(f.yield) || 1),
     marginPct: num(f.marginPct) || 0,
+    // Cada producto es un paquete (packQty packUnit a price) del que se usa useQty useUnit.
+    // La primera versión guardaba qty/unit/cost: es el mismo cálculo con paquete de 1.
     items: (f.items || []).map(i => ({
       id: newId(),
       name: i.name || '',
-      qty: num(i.qty) || 1,
-      unit: i.unit || 'u',
-      cost: num(i.cost),
-      costCur: i.costCur === 'USD' ? 'USD' : 'CUP'
+      packQty: num(i.packQty) || 1,
+      packUnit: i.packUnit || i.unit || 'u',
+      price: i.price !== undefined ? num(i.price) : num(i.cost),
+      costCur: i.costCur === 'USD' ? 'USD' : 'CUP',
+      useQty: i.useQty !== undefined ? num(i.useQty) : (num(i.qty) || 1),
+      useUnit: i.useUnit || ''
     }))
   };
 }

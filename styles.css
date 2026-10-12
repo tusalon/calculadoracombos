@@ -531,3 +531,11 @@ tbody tr.en-casa { background: color-mix(in srgb, var(--amber-soft) 55%, transpa
   td.c-home { grid-column: span 6; order: 9; text-align: left; width: auto; }
   .home-txt { display: inline; }
 }
+
+/* Ficha: paquete + lo usado */
+tbody tr.bad td.c-useu input { border-color: var(--red); }
+@media (max-width: 760px) {
+  #fTbl td.c-qty { order: 2; } #fTbl td.c-unit { order: 3; }
+  #fTbl td.c-cost { order: 4; grid-column: span 6; }
+  #fTbl td.c-useq, #fTbl td.c-useu { order: 5; grid-column: span 3; }
+}
