@@ -153,3 +153,12 @@ Los permisos y la elección de copia (teléfono contra nube) tienen su comprobac
 ```bash
 node test-permisos.mjs
 ```
+
+## Consignación
+
+Pestaña solo para el admin. Das producto a una persona (nombre, teléfono, producto y cantidad) y se le genera un enlace secreto (`c.html#…`) que le mandas por WhatsApp. Esa página es una PWA aparte, instalable, sin cuentas:
+
+- La persona **confirma "Recibí"** lo que le enviaste, **marca lo que vende** (queda "por pagar") y puede deshacer un error mientras no lo hayas cobrado.
+- Tú marcas **"Pagado"** cuando te paga, y puedes **enviar más** del mismo producto: le aparece a ella para confirmar.
+
+Los datos viven en Supabase. Corre `supabase-consignacion.sql` **parte por parte** (el editor corta los scripts largos) y al final la verificación: debe dar `2, 2, 4`. Las tablas solo las toca el admin; quien recibe solo puede usar 3 funciones con su enlace, que validan que nunca marque más de lo que tiene.

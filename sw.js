@@ -1,6 +1,6 @@
 /* Service worker: app shell offline */
 // Sube este número en cada cambio de archivos para forzar la actualización.
-const CACHE = 'combos-v13';
+const CACHE = 'combos-v14';
 const SHELL = [
   './',
   './index.html',
@@ -14,6 +14,10 @@ const SHELL = [
   './js/trading.js',
   './js/planner.js',
   './js/ficha.js',
+  './js/consignacion.js',
+  './js/consignado.js',
+  './c.html',
+  './manifest-c.webmanifest',
   './js/app.js',
   './js/config.js',
   './js/auth.js',
@@ -41,10 +45,12 @@ self.addEventListener('fetch', e => {
 
   // Navegaciones: red primero, cae al shell en caché
   if (req.mode === 'navigate') {
+    // Cada página se guarda con su propia clave: c.html no debe pisar a index.html.
+    const pagina = new URL(req.url).pathname.endsWith('/c.html') ? './c.html' : './index.html';
     e.respondWith(
       fetch(req)
-        .then(r => { caches.open(CACHE).then(c => c.put('./index.html', r.clone())); return r; })
-        .catch(() => caches.match('./index.html'))
+        .then(r => { caches.open(CACHE).then(c => c.put(pagina, r.clone())); return r; })
+        .catch(() => caches.match(pagina))
     );
     return;
   }

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi consignación</title>
+<meta name="description" content="Tus productos en consignación: confirma lo que recibes y marca lo que vendes.">
+<meta name="theme-color" content="#0f5132">
+<link rel="manifest" href="manifest-c.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="no-summary">
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <div class="brand">
+      <span class="brand-mark">$</span>
+      <h1 id="cNombre">Mi consignación</h1>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-sm" id="cActualizar">Actualizar</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel cons-install" id="cInstalar" hidden>
+    <p><b>Instálala en tu teléfono</b> para abrirla como una app, sin buscar el enlace.</p>
+    <button class="btn btn-primary" id="cInstalarBtn" hidden>Instalar</button>
+    <p class="muted" id="cInstalarIos" hidden>En iPhone: toca <b>Compartir</b> y luego <b>Añadir a pantalla de inicio</b>.</p>
+  </section>
+
+  <p class="cons-estado" id="cEstado" role="status"></p>
+
+  <section class="panel stats-panel cons-resumen" id="cResumen" hidden>
+    <div class="stat"><span class="stat-label">En tu mano</span><strong class="stat-value" id="cMano">0</strong></div>
+    <div class="stat"><span class="stat-label">Vendido, por pagar</span><strong class="stat-value warn" id="cDebe">0</strong></div>
+    <div class="stat"><span class="stat-label">Ya pagado</span><strong class="stat-value pos" id="cPagado">0</strong></div>
+  </section>
+
+  <div class="cards cons-cards" id="cLista"></div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/vendor/supabase.js"></script>
+<script type="module" src="js/consignado.js"></script>
+</body>
+</html>

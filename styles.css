@@ -540,3 +540,26 @@ tbody tr.bad td.c-useu input { border-color: var(--red); }
   #fTbl td.c-cost { order: 4; grid-column: span 6; }
   #fTbl td.c-useq, #fTbl td.c-useu { order: 5; grid-column: span 3; }
 }
+
+/* ---------- Consignación ---------- */
+.cons-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--line); }
+.cons-prod { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 200px; }
+.cons-sub { font-size: 12.5px; color: var(--ink-soft); margin: 2px 0; }
+.cons-sub i { font-style: normal; font-weight: 700; }
+.cons-owe { font-size: 13px; font-weight: 700; color: var(--amber); }
+.cons-btns { display: flex; gap: 6px; }
+.cons-install { padding: 14px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.cons-install p { margin: 0; }
+.cons-estado { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 13.5px; }
+.cons-estado.aviso { background: var(--amber-soft); color: var(--amber); font-weight: 600; }
+.cons-estado[hidden] { display: none; }
+.cons-resumen { grid-template-columns: repeat(3, 1fr); }
+.cons-card h3 { font-size: 17px; margin-bottom: 8px; }
+.cons-big { display: flex; align-items: baseline; gap: 8px; margin: 8px 0 2px; }
+.cons-big strong { font: 700 38px/1 Georgia, serif; }
+.cons-big span { color: var(--ink-soft); font-size: 14px; }
+.cons-recibir { background: var(--amber-soft); border-radius: 12px; padding: 12px; margin: 8px 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.cons-recibir p { margin: 0; color: var(--amber); }
+.cons-card .rem-actions { margin-top: 10px; flex-wrap: wrap; }
+.cons-card .btn { padding: 12px 16px; font-size: 15px; }
+.cons-card .btn[disabled], .cons-btns .btn[disabled] { opacity: .45; cursor: not-allowed; }

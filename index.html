@@ -34,6 +34,7 @@
     <button class="tab" data-tab="trading" role="tab" aria-selected="false">Compra/Venta</button>
     <button class="tab" data-tab="planner" role="tab" aria-selected="false">Combo posible</button>
     <button class="tab" data-tab="ficha" role="tab" aria-selected="false">Ficha de costo</button>
+    <button class="tab" data-tab="consignacion" role="tab" aria-selected="false">Consignación</button>
   </nav>
 </header>
 
@@ -405,6 +406,28 @@
     </section>
   </section>
 
+  <!-- ============ CONSIGNACIÓN ============ -->
+  <section class="view" data-view="consignacion" hidden>
+
+    <section class="panel stats-panel">
+      <div class="stat"><span class="stat-label">Por cobrar</span><strong class="stat-value warn" id="consDebe">0</strong><span class="stat-sub">vendido, sin pagarte</span></div>
+      <div class="stat"><span class="stat-label">En la calle</span><strong class="stat-value" id="consCalle">0</strong><span class="stat-sub">en manos de ellos</span></div>
+      <div class="stat"><span class="stat-label">Sin confirmar</span><strong class="stat-value" id="consSinConfirmar">0</strong><span class="stat-sub">enviado, no recibido</span></div>
+    </section>
+
+    <div class="rem-bar">
+      <button class="btn btn-primary" id="consNueva">+ Dar en consignación</button>
+      <div class="rem-bar-right"><button class="btn btn-sm btn-quiet" id="consRecargar">Actualizar</button></div>
+    </div>
+
+    <div class="cards" id="consLista"></div>
+
+    <div class="empty panel" id="consEmpty" hidden>
+      <p class="empty-title">Nadie tiene producto en consignación</p>
+      <p>Añade a una persona con su teléfono y el producto que le das. Se le genera un enlace para que confirme lo que recibe y marque lo que vende; tú marcas cuándo te paga.</p>
+    </div>
+  </section>
+
 </main>
 
 <!-- Resumen fijo abajo (solo en Combo) -->
@@ -628,6 +651,31 @@
       <div class="dlg-actions">
         <button type="button" class="btn btn-quiet" value="cancel">Cancelar</button>
         <button type="button" class="btn btn-primary" id="btnTradeGuardar">Guardar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Nueva consignación -->
+<dialog id="dlgCons">
+  <form method="dialog" class="dlg-form">
+    <header class="dlg-head">
+      <h2>Dar en consignación</h2>
+      <button class="btn btn-ghost" value="cancel" aria-label="Cerrar">✕</button>
+    </header>
+    <div class="dlg-body">
+      <div class="grid2">
+        <div class="field"><label for="cpNombre">Nombre</label><input type="text" id="cpNombre" autocomplete="off" placeholder="Quién lo recibe"></div>
+        <div class="field"><label for="cpTel">Teléfono</label><input type="tel" id="cpTel" autocomplete="off" placeholder="Para el WhatsApp"></div>
+      </div>
+      <h3 class="form-sec">Primer producto <span class="hint">opcional, luego puedes añadir más</span></h3>
+      <div class="grid2">
+        <div class="field"><label for="cpProducto">Producto</label><input type="text" id="cpProducto" autocomplete="off" placeholder="Ej: Picadillo"></div>
+        <div class="field"><label for="cpCant">Cantidad</label><input type="text" inputmode="numeric" id="cpCant" autocomplete="off" placeholder="30"></div>
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="btn btn-quiet" value="cancel">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="cpGuardar">Crear y generar enlace</button>
       </div>
     </div>
   </form>

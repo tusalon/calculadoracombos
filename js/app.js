@@ -7,6 +7,7 @@ import { initRemesas, renderRemesas } from './remesas.js';
 import { initTrading, renderTrading } from './trading.js';
 import { initPlanner, renderPlanner } from './planner.js';
 import { initFicha, renderFicha } from './ficha.js';
+import { initConsignacion, renderConsignacion } from './consignacion.js';
 import { arrancarAuth, puede } from './auth.js';
 import { initAdmin } from './admin.js';
 
@@ -36,6 +37,7 @@ function irA(tab) {
   if (tab === 'trading') renderTrading();
   if (tab === 'planner') renderPlanner();
   if (tab === 'ficha') renderFicha();
+  if (tab === 'consignacion') renderConsignacion();
   scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -87,6 +89,7 @@ initRemesas(refrescarTodo);
 initTrading(refrescarTodo);
 initPlanner();
 initFicha();
+initConsignacion();
 
 $('#rate').value = qtyFmt(state.rate);
 $('#combos').value = state.current.combos;
